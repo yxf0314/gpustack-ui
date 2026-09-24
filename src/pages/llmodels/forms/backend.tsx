@@ -1,6 +1,8 @@
+import { isCustomSourceType } from '@/pages/_components/source-config/config';
 import { CaretDownOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import {
   Select as SealSelect,
+  ThemeTag,
   TooltipList,
   useAppUtils
 } from '@gpustack/core-ui';
@@ -173,8 +175,22 @@ const BackendFields: React.FC = () => {
     handleCloseTips();
   };
 
+  // A backend is imported as a whole, so the source stamp is only meaningful
+  // here: a custom (file / url) source produced it, rather than the packaged
+  // content or a hand-added backend.
   const optionRender = (option: any) => {
-    return option.data.title;
+    return (
+      // ThemeTag is display:flex, so it needs a flex row to sit beside the name
+      // instead of breaking onto a line of its own inside the option content.
+      <span className="flex-center gap-8">
+        {option.data.title}
+        {isCustomSourceType(option.data?.source_type) && (
+          <ThemeTag color="purple" opacity={0.7} style={{ flex: 'none' }}>
+            {intl.formatMessage({ id: 'common.source.tag.custom' })}
+          </ThemeTag>
+        )}
+      </span>
+    );
   };
 
   const labelRender = (option: any) => {
@@ -202,6 +218,11 @@ const BackendFields: React.FC = () => {
         <SealSelect
           required
           showSearch
+          // Without this the search filters on `value` (the backend name),
+          // which is not what the option shows for the built-in "custom"
+          // backend: its label is the translated "Custom", so typing that
+          // matched nothing in any locale but English.
+          optionFilterProp="label"
           onChange={handleOnBackendChange}
           label={intl.formatMessage({ id: 'models.form.backend' })}
           description={<TooltipList list={backendTipsList}></TooltipList>}
@@ -226,6 +247,10 @@ const BackendFields: React.FC = () => {
             allowClear
             showSearch
             allowNull
+            // The version options label themselves with their own value, but
+            // the leading "Auto" entry carries a null value, so the default
+            // filter (on `value`) can never match the word the option shows.
+            optionFilterProp="label"
             labelRender={backendVersionLabelRender}
             placeholder={intl.formatMessage({
               id: 'models.form.backendVersion.holder'

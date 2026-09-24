@@ -1,5 +1,54 @@
 export default {
   'models.button.deploy': 'Развернуть модель',
+  'models.button.exportYaml': 'Экспорт YAML',
+  'models.button.importYaml': 'Импорт YAML',
+  'models.form.yamlFile': 'YAML-файл',
+  'models.import.checking': 'Проверка…',
+  'models.import.hint.nothing': 'Здесь нечего импортировать',
+  'models.import.pickFile': 'Выбрать файл',
+  'models.import.empty.title': 'Импорт YAML-файла',
+  'models.import.empty.description':
+    'Выберите файл с описанием развёртываний. Он сначала проверяется, и различия показываются полностью — до того, как что-либо будет записано.',
+  'models.import.cluster.follow': 'Как указано в файле',
+  'models.import.loaded':
+    'Развёртываний: {count} · совпадает с текущим состоянием кластера {cluster}',
+  'models.import.loaded.hint':
+    'Документ совпадает с текущим состоянием кластера {cluster}, записывать нечего.',
+  'models.import.counts':
+    'Развёртываний: {count} · в кластер {cluster} · изменений: {changes}',
+  'models.import.parsed': 'Развёртываний: {count}',
+  'models.import.parsed.invalid': 'нельзя импортировать: {count}',
+  'models.import.fieldsDoc': 'Справочник полей',
+  'models.import.nav.invalid': 'Нельзя импортировать',
+  'models.import.scope.all': 'Все развёртывания ({count})',
+  'models.import.scope.whole': 'Весь документ',
+  'models.import.scope.wholeShort': 'Целиком',
+  'models.import.pane.current': 'В кластере · только чтение',
+  'models.import.pane.draft': 'К импорту · можно править',
+  'models.import.pane.absent': 'Развёртывания с таким именем нет',
+  'models.import.pane.none': 'В этом кластере нет подходящих развёртываний',
+  'models.import.pane.allNew':
+    'Все развёртывания здесь новые — ни одно не заменяется',
+  'models.import.pane.waiting': 'Пока нечего сравнивать',
+  'models.import.entry': 'Развёртывание {index}',
+  'models.import.entry.invalid': 'Развёртывание {index} нельзя импортировать',
+  'models.import.summary':
+    'Создать: {create}, обновить: {update}, без изменений: {unchanged}.',
+  'models.import.summary.replaces':
+    'Обновление заменяет развёртывание содержимым файла.',
+  'models.import.action.create': 'Создать',
+  'models.import.action.update': 'Обновить',
+  'models.import.action.unchanged': 'Без изменений',
+  'models.import.changes': 'Изменений: {count}',
+  'models.import.blocked':
+    'Нельзя импортировать развёртываний: {count}. Исправьте их, чтобы продолжить.',
+  'models.import.overwrite.title': 'Подтвердите импорт',
+  'models.import.overwrite.confirm':
+    'Следующие существующие развёртывания ({count}) будут полностью заменены содержимым файла. Настройки, которых нет в файле, вернутся к значениям по умолчанию.',
+  'models.import.overwrite.rest':
+    'Также будет создано: {create}, без изменений: {unchanged}.',
+  'models.import.invalid':
+    'Файл не может быть импортирован. Исправьте указанные ниже проблемы — проверка выполнится снова.',
   'models.title': 'Модели',
   'models.title.edit': 'Редактировать модель',
   'models.title.duplicate': 'Клонировать модель',
@@ -55,8 +104,17 @@ export default {
     'Автоматическое развертывание инстансов модели на подходящие GPU в зависимости от текущих ресурсов.',
   'models.form.scheduletype.manual.tips':
     'Позволяет вручную указать GPU для развертывания инстансов модели.',
+  'models.form.gpuallocation': 'Распределение GPU',
+  'models.form.gpumode.full': 'Целиком',
+  'models.form.gpumode.slicing': 'Нарезка',
+  'models.form.gpuType.noSlicedCapacity':
+    'Нет доступной ёмкости для нарезки у этого типа GPU, выберите другой тип GPU.',
+  'models.form.gpuType.noPartitionProfile':
+    'Нет доступного профиля раздела у этого типа GPU, выберите другой тип GPU.',
   'models.form.manual.schedule': 'Ручное распределение',
   'models.table.gpuindex': 'Индекс GPU',
+  'models.table.vgpu': 'vGPU',
+  'models.table.vgpu.slice': '{memory}% VRAM / {cores}% вычислений',
   'models.table.backend': 'Бэкенды',
   'models.table.acrossworker': 'Распределение по воркерам',
   'models.table.cpuoffload': 'CPU оффлоуд',
@@ -85,6 +143,7 @@ export default {
   'models.logs.pagination.next': 'Следующие {lines} строк',
   'models.logs.pagination.last': 'Последняя страница',
   'models.logs.pagination.first': 'Первая страница',
+  'models.logs.pagination.jump': 'Перейти к странице',
   'models.form.localPath': 'Локальный путь',
   'models.form.filePath': 'Путь к модели',
   'models.form.backendVersion': 'Версия бэкенда',
@@ -124,6 +183,11 @@ export default {
   'models.form.releases': 'Релизы',
   'models.form.moreparameters': 'Описание параметров',
   'models.table.vram.allocated': 'Выделенная VRAM',
+  'models.table.vram.workers': '{n} рабочих узлов',
+  'models.instance.workergpu': '{n} воркеров / {m} GPU',
+  'models.instance.mainworker': 'Главный воркер (Main)',
+  'models.instance.worker': 'Воркер',
+  'models.instance.workerip': 'IP:Port воркера',
   'models.form.backend.warning':
     'Выбранный бэкенд не поддерживает модели GGUF. Пожалуйста, добавьте бэкенд с поддержкой GGUF в разделе Бэкенды вывода.',
   'models.form.backend.warning.gguf':
@@ -139,6 +203,9 @@ export default {
   'models.form.submit.anyway': 'Отправить в любом случае',
   'models.form.evaluating': 'Анализ совместимости модели',
   'models.form.incompatible': 'Обнаружена несовместимость',
+  'models.form.nativeAnthropicApi': 'Нативный Anthropic API',
+  'models.form.nativeAnthropicApi.tips':
+    'Включите, если сервер инференса сам реализует Anthropic Messages API (например, свежие версии vLLM): тогда запросы к /v1/messages доходят до него как есть. Если выключено, /v1/messages по-прежнему работает, но сначала преобразуется в /v1/chat/completions.',
   'models.form.restart.onerror': 'Автоперезапуск при ошибке',
   'models.form.restart.onerror.tips':
     'При возникновении ошибки система автоматически попытается перезапуститься.',
@@ -230,7 +297,78 @@ export default {
     'Расширенный KV-кэш и спекулятивное декодирование доступны только для встроенных бэкендов (vLLM / SGLang). Пожалуйста, переключите бэкенд, чтобы включить их.',
   'models.form.kvCache.tips2':
     'Поддерживается только при использовании встроенных бэкендов вывода (vLLM или SGLang).',
+  'models.form.kvCache.backend': 'Cache Backend',
+  'models.form.kvCache.local': 'In-Process Cache',
+  'models.form.kvCache.service.tips':
+    'Only cache services in the same cluster and compatible with the selected backend are listed.',
+  'models.form.kvCache.shared.builtinBackends':
+    'Cache Service поддерживается только для встроенных бэкендов vLLM и SGLang.',
+  'models.kvCache.degraded.tips':
+    'Shared KV cache is not active for this instance',
+  'models.kvCache.endpointDead.tips':
+    'The shared cache this instance attached to is no longer available; restart the instance to recover',
+  'models.kvCache.service': 'Cache Service',
+  'models.kvCache.hitRate': 'External Cache Hit Rate ({window})',
+  'models.kvCache.hitRate.window': '1h',
   'models.form.scheduling': 'Планирование',
+  'models.form.scaling': 'Плановое масштабирование',
+  'models.form.scaling.enable': 'Включить плановое масштабирование',
+  'models.form.scaling.enable.tips':
+    'Изменять количество реплик в повторяющихся временных окнах (например, больше днём и меньше ночью). Вне всех окон модель использует настроенное количество реплик в качестве базового значения.',
+  'models.form.scaling.tz.note':
+    'Время расписания использует общесерверный часовой пояс (GPUSTACK_TIMEZONE, по умолчанию — часовой пояс сервера).',
+  'models.form.scaling.rules': 'Правила',
+  'models.form.scaling.cron': 'Выражение cron',
+  'models.form.scaling.useCron': 'Использовать CRON-выражение',
+  'models.form.scaling.repeat': 'Повтор',
+  'models.form.scaling.repeat.daily': 'Каждый день',
+  'models.form.scaling.repeat.weekdays': 'Будни (Пн–Пт)',
+  'models.form.scaling.repeat.weekends': 'Выходные (Сб–Вс)',
+  'models.form.scaling.repeat.weekly': 'Каждую неделю',
+  'models.form.scaling.repeat.monthly': 'Ежемесячно',
+  'models.form.scaling.repeat.cron': 'CRON',
+  'models.form.scaling.weekdaysLabel': 'Дни недели',
+  'models.form.scaling.monthdaysLabel': 'Дни месяца',
+  'models.form.scaling.startTime': 'Время начала',
+  'models.form.scaling.endTime': 'Время окончания',
+  'models.form.scaling.crossDay': 'Заканчивается на следующий день',
+  'models.form.scaling.nextDayBadge': '+1 дн.',
+  'models.form.scaling.timezone': 'Часовой пояс',
+  'models.form.scaling.tz.all': 'Все расписания используют часовой пояс {tz}',
+  'models.form.scaling.duration': 'Длительность',
+  'models.form.scaling.durationUnit': 'Единица времени',
+  'models.form.scaling.windowReplicas': 'Реплики в окне',
+  'models.form.scaling.unit.minutes': 'Минуты',
+  'models.form.scaling.unit.hours': 'Часы',
+  'models.form.scaling.unit.days': 'Дни',
+  'models.form.scaling.startCron': 'Начало окна',
+  'models.form.scaling.endCron': 'Конец окна',
+  'models.form.scaling.baseline': 'Базовое количество реплик',
+  'models.form.scaling.baseline.tips':
+    'Количество реплик, используемое, когда текущее время вне всех окон.',
+  'models.form.scaling.baselineNote':
+    'Значение Replicas, заданное выше, используется как базовое — количество реплик, применяемое, когда текущее время вне всех окон.',
+  'models.form.scaling.cron.invalid': 'Недопустимое выражение cron',
+  'models.form.scaling.meaning': 'Сводка',
+  'models.form.scaling.summary.monthDays': 'День {days}',
+  'models.form.scaling.freq.minute': 'Каждую минуту',
+  'models.form.scaling.freq.hour': 'Раз в час',
+  'models.form.scaling.freq.day': 'Раз в день',
+  'models.form.scaling.freq.week': 'Раз в неделю',
+  'models.form.scaling.freq.month': 'Раз в месяц',
+  'models.form.scaling.freq.year': 'Раз в год',
+  'models.form.scaling.next': 'Следующее окно:',
+  'models.form.scaling.current': 'Текущее окно:',
+  'models.form.scaling.addRule': 'Добавить правило',
+  'models.form.scaling.removeRule': 'Удалить правило',
+  'models.form.scaling.rules.required':
+    'Добавьте хотя бы одно правило или отключите плановое масштабирование.',
+  'models.form.scaling.hint':
+    'Каждое правило открывает окно в момент начала на заданную длительность и держит своё количество реплик. Вне всех окон модель использует базовое количество реплик, указанное выше. При перекрытии окон действует то, что началось позже всех.',
+  'models.form.scaling.conflict':
+    'Конфликт: правила с одинаковым временем начала ({times}) имеют разное количество реплик. Задайте одинаковое количество реплик или разное время начала.',
+  'models.form.scaling.overlap':
+    'Перекрытие: окна ({times}) перекрываются; в местах перекрытия действует правило, начавшееся позже.',
   'models.form.ramRatio': 'Соотношение ОЗУ к VRAM',
   'models.form.ramSize': 'Максимальный размер ОЗУ (ГиБ)',
   'models.form.ramRatio.tips':
@@ -295,12 +433,18 @@ export default {
   'models.instance.startHistory': 'Run History',
   'models.instance.startHistory.tips':
     'Shows logs from the run before the last error-triggered restart.',
+  'models.instance.logs.downloading': 'Загрузка… {size}',
+  'models.instance.logs.downloadingPercent': 'Загрузка… {percent}%',
   'models.form.lora.label': 'LoRA Adapters',
   'models.form.lora.add': 'Add LoRA Adapter',
   'models.form.lora.select': 'Select LoRA',
   'models.form.lora.name': 'LoRA name',
   'models.form.lora.rule.empty': 'Input cannot be empty',
-  'models.form.lora.rule.duplicate': 'LoRA name cannot be duplicated'
+  'models.form.lora.rule.duplicate': 'LoRA name cannot be duplicated',
+  // Model catalog source configuration
+  'models.catalog.source.title': 'Источник каталога',
+  'models.catalog.source.official':
+    'Follows the catalog GPUStack publishes, on top of the one packaged with this release.'
 };
 
 // ========== To-Do: Translate Keys (Remove After Translation) ==========

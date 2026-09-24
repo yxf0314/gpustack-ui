@@ -2,9 +2,7 @@ import { clusterSessionAtom, expandKeysAtom } from '@/atoms/clusters';
 import { PageAction } from '@/config';
 import { PaginationKey, TABLE_SORT_DIRECTIONS } from '@/config/settings';
 import type { PageActionType } from '@/config/types';
-import useExpandedRowKeys from '@/hooks/use-expanded-row-keys';
 import useTableFetch from '@/hooks/use-table-fetch';
-import useWatchList from '@/hooks/use-watch-list';
 import { getGPUStackPlugin } from '@/plugins';
 import {
   DeleteModal,
@@ -13,7 +11,9 @@ import {
   NoResult,
   Table as SealTable,
   TableOrder,
-  TableProvider
+  TableProvider,
+  useExpandedRowKeys,
+  useWatchList
 } from '@gpustack/core-ui';
 import { useIntl } from '@umijs/max';
 import { useMemoizedFn } from 'ahooks';
@@ -43,7 +43,7 @@ import {
 } from './components/add-worker/config';
 import PoolRows from './components/pool-rows';
 import RightActions from './components/right-actions';
-import { ProviderType, ProviderValueMap } from './config';
+import { isCloudProvider, ProviderType, ProviderValueMap } from './config';
 import {
   ClusterListItem,
   CredentialListItem,
@@ -90,7 +90,16 @@ const Clusters: React.FC = () => {
   // row action and this self-controlled drawer, owning its own
   // open/close state. OSS just mounts it (nothing without a plugin).
   const AccessDrawer = getGPUStackPlugin()?.clusterDetail?.AccessDrawer;
-  const { watchDataList: allWorkerPoolList } = useWatchList(WORKER_POOLS_API);
+  // Node pools only exist under cloud providers — they are what makes a row
+  // expandable (see `setDisableExpand`). On a page of Docker / K8s clusters
+  // the stream would be held open for rows that can never use it, so gate it
+  // on the rows actually on screen.
+  const hasNodePoolCluster = dataSource.dataList?.some((item) =>
+    isCloudProvider(item.provider)
+  );
+  const { watchDataList: allWorkerPoolList } = useWatchList(WORKER_POOLS_API, {
+    enabled: hasNodePoolCluster
+  });
   const [expandAtom] = useAtom(expandKeysAtom);
   const [clusterSession, setClusterSession] = useAtom(clusterSessionAtom);
   const { handleExpandChange, handleExpandAll, expandedRowKeys } =
@@ -155,23 +164,24 @@ const Clusters: React.FC = () => {
     const params = {
       ...data
     };
-    try {
-      if (openAddModal.action === PageAction.EDIT) {
-        await updateCluster({
-          data: params,
-          id: openAddModal.currentData!.id
-        });
-      }
-      fetchData();
-      setOpenAddModal({
-        open: false,
-        action: PageAction.CREATE,
-        currentData: undefined,
-        title: '',
-        provider: null
+    // Deliberately not caught here: the drawer needs the rejection to put a
+    // field-level error (e.g. a rejected Chart Values path) under the field
+    // that caused it. The global handler still toasts the message.
+    if (openAddModal.action === PageAction.EDIT) {
+      await updateCluster({
+        data: params,
+        id: openAddModal.currentData!.id
       });
-      message.success(intl.formatMessage({ id: 'common.message.success' }));
-    } catch (error) {}
+    }
+    fetchData();
+    setOpenAddModal({
+      open: false,
+      action: PageAction.CREATE,
+      currentData: undefined,
+      title: '',
+      provider: null
+    });
+    message.success(intl.formatMessage({ id: 'common.message.success' }));
   };
 
   const handleModalCancel = () => {
@@ -185,6 +195,20 @@ const Clusters: React.FC = () => {
     });
   };
 
+  // Credentials are a cloud provider's field only (ClusterForm renders
+  // `CloudProvider` for no other provider), and this modal is the edit
+  // flow — creation runs through ClusterModal, which fetches its own.
+  // So load them when a cloud row opens the drawer, not on mount.
+  const fetchCredentialList = async () => {
+    const data = await queryCredentialList({ page: -1 });
+    setCredentialList(
+      data?.items?.map((item: CredentialListItem) => ({
+        label: item.name,
+        value: item.id
+      })) || []
+    );
+  };
+
   const handleEditCluster = (row: ListItem) => {
     setOpenAddModal({
       open: true,
@@ -196,6 +220,9 @@ const Clusters: React.FC = () => {
       ),
       provider: row.provider
     });
+    if (isCloudProvider(row.provider)) {
+      fetchCredentialList();
+    }
   };
 
   const handleSelect = useMemoizedFn((val: any, row: ListItem, item?: any) => {
@@ -271,22 +298,10 @@ const Clusters: React.FC = () => {
 
   const setDisableExpand = (row: ClusterListItem) => {
     return (
-      row.provider !== ProviderValueMap.DigitalOcean ||
+      !isCloudProvider(row.provider) ||
       !allWorkerPoolList.some((item) => item.cluster_id === row.id)
     );
   };
-
-  useEffect(() => {
-    const fetchCredentialList = async () => {
-      const data = await queryCredentialList({ page: -1 });
-      const list = data?.items?.map((item: CredentialListItem) => ({
-        label: item.name,
-        value: item.id
-      }));
-      setCredentialList(list);
-    };
-    fetchCredentialList();
-  }, []);
 
   useEffect(() => {
     if (
@@ -305,7 +320,8 @@ const Clusters: React.FC = () => {
         const actionMap = {
           [ProviderValueMap.Docker]: 'add_worker',
           [ProviderValueMap.Kubernetes]: 'register_cluster',
-          [ProviderValueMap.DigitalOcean]: 'addPool'
+          [ProviderValueMap.DigitalOcean]: 'addPool',
+          [ProviderValueMap.Shuihua]: 'addPool'
         };
         handleSelect(
           actionMap[targetCluster.provider as string],
@@ -372,8 +388,6 @@ const Clusters: React.FC = () => {
       <PageBox>
         <FilterBar
           showSelect={false}
-          marginBottom={22}
-          marginTop={30}
           widths={{ input: 300 }}
           buttonText={intl.formatMessage({ id: 'clusters.button.add' })}
           rowSelection={rowSelection}

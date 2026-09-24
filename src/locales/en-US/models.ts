@@ -1,5 +1,53 @@
 export default {
   'models.button.deploy': 'Deploy Model',
+  'models.button.exportYaml': 'Export YAML',
+  'models.button.importYaml': 'Import YAML',
+  'models.form.yamlFile': 'YAML File',
+  'models.import.checking': 'Checking…',
+  'models.import.hint.nothing': 'Nothing here to import',
+  'models.import.pickFile': 'Choose a file',
+  'models.import.empty.title': 'Import a YAML file',
+  'models.import.empty.description':
+    'Pick a file describing one or more deployments. It is checked first, and the diff shows exactly what would be written before anything is.',
+  'models.import.cluster.follow': 'Follow the file',
+  'models.import.loaded':
+    '{count} deployment(s) · identical to what {cluster} runs now',
+  'models.import.loaded.hint':
+    'This document matches what {cluster} runs now, so there is nothing to write.',
+  'models.import.counts':
+    '{count} deployment(s) · into {cluster} · {changes} change(s)',
+  'models.import.parsed': '{count} deployment(s)',
+  'models.import.parsed.invalid': '{count} cannot be imported',
+  'models.import.fieldsDoc': 'Field reference',
+  'models.import.nav.invalid': 'Cannot import',
+  'models.import.scope.all': 'All {count} deployment(s)',
+  'models.import.scope.whole': 'Whole document',
+  'models.import.scope.wholeShort': 'Whole',
+  'models.import.pane.current': 'In the cluster · read-only',
+  'models.import.pane.draft': 'To import · editable',
+  'models.import.pane.absent': 'No deployment with this name',
+  'models.import.pane.none': 'No matching deployments in this cluster',
+  'models.import.pane.allNew': 'Every deployment here is new — none replaced',
+  'models.import.pane.waiting': 'Nothing to compare yet',
+  'models.import.entry': 'Deployment {index}',
+  'models.import.entry.invalid': 'Deployment {index} cannot be imported',
+  'models.import.summary':
+    '{create} to create, {update} to update, {unchanged} unchanged.',
+  'models.import.summary.replaces':
+    'An update replaces the deployment with the file.',
+  'models.import.action.create': 'Create',
+  'models.import.action.update': 'Update',
+  'models.import.action.unchanged': 'Unchanged',
+  'models.import.changes': '{count} change(s)',
+  'models.import.blocked':
+    '{count} deployment(s) cannot be imported. Fix them to continue.',
+  'models.import.overwrite.title': 'Confirm import',
+  'models.import.overwrite.confirm':
+    'The following {count} existing deployment(s) will be replaced by the file. Settings the file leaves out go back to their defaults.',
+  'models.import.overwrite.rest':
+    'It will also create {create} and leave {unchanged} unchanged.',
+  'models.import.invalid':
+    'The file cannot be imported. Fix the problems below and it is checked again.',
   'models.title': 'Models',
   'models.title.edit': 'Edit Model',
   'models.title.duplicate': 'Clone Model',
@@ -53,8 +101,17 @@ export default {
     'Automatically deploys model instances to appropriate GPUs based on current resource conditions.',
   'models.form.scheduletype.manual.tips':
     'Allows you to manually specify the GPUs to deploy the model instances to.',
+  'models.form.gpuallocation': 'GPU Allocation',
+  'models.form.gpumode.full': 'Full',
+  'models.form.gpumode.slicing': 'Slicing',
+  'models.form.gpuType.noSlicedCapacity':
+    'No sliceable capacity available on this GPU type, please choose another GPU type.',
+  'models.form.gpuType.noPartitionProfile':
+    'No partition profile available on this GPU type, please choose another GPU type.',
   'models.form.manual.schedule': 'Manual Schedule',
   'models.table.gpuindex': 'GPU Index',
+  'models.table.vgpu': 'vGPU',
+  'models.table.vgpu.slice': '{memory}% VRAM / {cores}% Compute',
   'models.table.backend': 'Backends',
   'models.table.acrossworker': 'Distributed Across Workers',
   'models.table.cpuoffload': 'CPU Offload',
@@ -83,6 +140,7 @@ export default {
   'models.logs.pagination.next': 'Next {lines} Lines',
   'models.logs.pagination.last': 'Last Page',
   'models.logs.pagination.first': 'First Page',
+  'models.logs.pagination.jump': 'Go to Page',
   'models.form.localPath': 'Local Path',
   'models.form.filePath': 'Model Path',
   'models.form.backendVersion': 'Backend Version',
@@ -121,6 +179,11 @@ export default {
   'models.form.releases': 'Releases',
   'models.form.moreparameters': 'Parameter Description',
   'models.table.vram.allocated': 'Allocated VRAM',
+  'models.table.vram.workers': '{n} workers',
+  'models.instance.workergpu': '{n} workers / {m} GPUs',
+  'models.instance.mainworker': 'Main Worker',
+  'models.instance.worker': 'Worker',
+  'models.instance.workerip': 'Worker IP:Port',
   'models.form.backend.warning':
     'The selected backend does not support GGUF models. Please add a backend with GGUF support in the Inference Backend.',
   'models.form.backend.warning.gguf':
@@ -136,6 +199,9 @@ export default {
   'models.form.submit.anyway': 'Submit Anyway',
   'models.form.evaluating': 'Evaluating Model Compatibliity',
   'models.form.incompatible': 'Incompatibility Detected',
+  'models.form.nativeAnthropicApi': 'Native Anthropic API',
+  'models.form.nativeAnthropicApi.tips':
+    'Enable when the inference server implements the Anthropic Messages API itself (e.g. recent vLLM), so requests to /v1/messages reach it as they are. Left off, /v1/messages still works — it is converted to /v1/chat/completions first.',
   'models.form.restart.onerror': 'Auto-Restart On Error',
   'models.form.restart.onerror.tips':
     'When an error occurs, it will automatically attempt to restart.',
@@ -226,7 +292,78 @@ export default {
     'Extended KV cache and speculative decoding are only available with built-in backends (vLLM / SGLang), Please switch the backend to enable them.',
   'models.form.kvCache.tips2':
     'Only supported when using built-in inference backends (vLLM or SGLang).',
+  'models.form.kvCache.backend': 'Cache Backend',
+  'models.form.kvCache.local': 'In-Process Cache',
+  'models.form.kvCache.service.tips':
+    'Only cache services in the same cluster and compatible with the selected backend are listed.',
+  'models.form.kvCache.shared.builtinBackends':
+    'Cache Service is only supported with the built-in vLLM and SGLang backends.',
+  'models.kvCache.degraded.tips':
+    'Shared KV cache is not active for this instance',
+  'models.kvCache.endpointDead.tips':
+    'The shared cache this instance attached to is no longer available; restart the instance to recover',
+  'models.kvCache.service': 'Cache Service',
+  'models.kvCache.hitRate': 'External Cache Hit Rate ({window})',
+  'models.kvCache.hitRate.window': '1h',
   'models.form.scheduling': 'Scheduling',
+  'models.form.scaling': 'Scheduled Scaling',
+  'models.form.scaling.enable': 'Enable scheduled scaling',
+  'models.form.scaling.enable.tips':
+    'Scale replicas within recurring time windows (e.g. more by day, fewer at night). Outside every window the model falls back to the configured replica count as its baseline.',
+  'models.form.scaling.tz.note':
+    'Schedule times use the server-wide timezone (GPUSTACK_TIMEZONE, defaults to the server timezone).',
+  'models.form.scaling.rules': 'Rules',
+  'models.form.scaling.cron': 'Cron Expression',
+  'models.form.scaling.useCron': 'Use CRON expression',
+  'models.form.scaling.repeat': 'Repeat',
+  'models.form.scaling.repeat.daily': 'Every day',
+  'models.form.scaling.repeat.weekdays': 'Weekdays (Mon–Fri)',
+  'models.form.scaling.repeat.weekends': 'Weekends (Sat–Sun)',
+  'models.form.scaling.repeat.weekly': 'Every week',
+  'models.form.scaling.repeat.monthly': 'Every month',
+  'models.form.scaling.repeat.cron': 'CRON',
+  'models.form.scaling.weekdaysLabel': 'Day(s) of the week',
+  'models.form.scaling.monthdaysLabel': 'Day(s) of the month',
+  'models.form.scaling.startTime': 'Start time',
+  'models.form.scaling.endTime': 'End time',
+  'models.form.scaling.crossDay': 'Ends the next day',
+  'models.form.scaling.nextDayBadge': '+1 day',
+  'models.form.scaling.timezone': 'Timezone',
+  'models.form.scaling.tz.all': 'All schedules use {tz} timezone',
+  'models.form.scaling.duration': 'Duration',
+  'models.form.scaling.durationUnit': 'Unit of time',
+  'models.form.scaling.windowReplicas': 'Replicas in window',
+  'models.form.scaling.unit.minutes': 'Minutes',
+  'models.form.scaling.unit.hours': 'Hours',
+  'models.form.scaling.unit.days': 'Days',
+  'models.form.scaling.startCron': 'Window Start',
+  'models.form.scaling.endCron': 'Window End',
+  'models.form.scaling.baseline': 'Baseline Replicas',
+  'models.form.scaling.baseline.tips':
+    'Replica count used when the current time is outside every window.',
+  'models.form.scaling.baselineNote':
+    'The Replicas value set above is used as the baseline — the replica count applied whenever the current time is outside every window.',
+  'models.form.scaling.cron.invalid': 'Invalid cron expression',
+  'models.form.scaling.meaning': 'Summary',
+  'models.form.scaling.summary.monthDays': 'Day {days}',
+  'models.form.scaling.freq.minute': 'Every minute',
+  'models.form.scaling.freq.hour': 'Once an hour',
+  'models.form.scaling.freq.day': 'Once a day',
+  'models.form.scaling.freq.week': 'Once a week',
+  'models.form.scaling.freq.month': 'Once a month',
+  'models.form.scaling.freq.year': 'Once a year',
+  'models.form.scaling.next': 'Next window:',
+  'models.form.scaling.current': 'Current window:',
+  'models.form.scaling.addRule': 'Add rule',
+  'models.form.scaling.removeRule': 'Remove rule',
+  'models.form.scaling.rules.required':
+    'Add at least one rule, or turn off scheduled scaling.',
+  'models.form.scaling.hint':
+    'Each rule opens a window at its start time for the set duration, running its replica count. Outside every window the model uses the baseline replica count above. When windows overlap, the most recently started window takes effect.',
+  'models.form.scaling.conflict':
+    'Conflict: rules with the same start time ({times}) have different replica counts. Use the same replica count or different start times.',
+  'models.form.scaling.overlap':
+    'Overlap: windows ({times}) overlap; where they overlap, the later-starting rule takes effect.',
   'models.form.ramRatio': 'RAM-to-VRAM Ratio',
   'models.form.ramSize': 'Maximum RAM Size (GiB)',
   'models.form.ramRatio.tips':
@@ -291,10 +428,16 @@ export default {
   'models.instance.startHistory': 'Run History',
   'models.instance.startHistory.tips':
     'Shows logs from the run before the last error-triggered restart.',
+  'models.instance.logs.downloading': 'Downloading… {size}',
+  'models.instance.logs.downloadingPercent': 'Downloading… {percent}%',
   'models.form.lora.label': 'LoRA Adapters',
   'models.form.lora.add': 'Add LoRA Adapter',
   'models.form.lora.select': 'Select LoRA',
   'models.form.lora.name': 'LoRA name',
   'models.form.lora.rule.empty': 'Input cannot be empty',
-  'models.form.lora.rule.duplicate': 'LoRA name cannot be duplicated'
+  'models.form.lora.rule.duplicate': 'LoRA name cannot be duplicated',
+  // Model catalog source configuration
+  'models.catalog.source.title': 'Catalog Source',
+  'models.catalog.source.official':
+    'Follows the catalog GPUStack publishes, on top of the one packaged with this release.'
 };

@@ -31,6 +31,24 @@ export default {
   'usage.tabs.users': 'User',
   'usage.export.chart': 'Export Chart Data',
   'usage.export.table': 'Export Table Data',
+  'usage.export.rows': 'About {total} rows will be exported.',
+  'usage.export.rowsSlow':
+    'About {total} rows will be exported. This may take a while — please keep this page open.',
+  'usage.export.rowsExceeded':
+    'About {total} rows, over the {limit}-row limit for a single export. Shorten the date range to {days} days or fewer, or add filters.',
+  'usage.export.error.tooLarge':
+    'This query returns about {total} rows, over the {limit}-row limit for a single export. Shorten the date range to {days} days or fewer, or add filters.',
+  'usage.export.splitAsCsv':
+    'The result is too large for one file, so it will be delivered as {parts} CSV files in a zip.',
+  'usage.export.csvFallback':
+    "The result exceeds Excel's {limit}-row limit per sheet, so it will be exported as CSV instead of xlsx.",
+  'usage.export.error.splitTooManyParts':
+    'Splitting would produce {total} files, over the {limit} limit. Narrow the date range or export fewer tables at once.',
+  'usage.export.estimateFailed':
+    'Could not size this export, so the preview has no columns to show. The download still works; the server enforces the limits either way.',
+  'usage.export.error.failed': 'Export failed.',
+  'usage.export.suggest.shortenRange': 'Shorten to {days} days',
+  'usage.export.suggest.split': 'Export in {parts} CSV files',
   'usage.user.currentAccount': 'Current Account',
   'usage.table.cluster': 'Cluster',
   'usage.table.provider': 'Provider',
@@ -45,7 +63,8 @@ export default {
   'usage.metric.input': 'Вход',
   'usage.metric.output': 'Выход',
   'usage.metric.gpuHours': 'GPU-часы',
-  'usage.metric.instanceHours': 'Часы инстансов',
+  'usage.metric.runningTime': 'Время работы',
+  'usage.metric.usage': 'Потребление',
   'usage.metric.gbDays': 'ГБ-дни',
   'usage.metric.gbHours': 'ГБ-часы',
   'usage.metric.activeUsers': 'Активные пользователи',
@@ -55,8 +74,10 @@ export default {
   'usage.metric.storageTypes': 'Типы хранилищ',
   'usage.metric.gpuHours.tip':
     'Время работы инстанса, взвешенное по количеству GPU: инстанс с N GPU, работающий H часов, считается как N × H GPU-часов. Равно часам инстансов, когда каждый инстанс использует один GPU.',
-  'usage.metric.instanceHours.tip':
-    'Суммарное время работы всех инстансов независимо от количества используемых GPU. Один инстанс, работающий 2 часа = 2 часа инстанса.',
+  'usage.metric.runningTime.tip':
+    'Фактическое время работы экземпляра, независимо от числа занятых единиц: два часа работы — это 2 ч, держал он 1 карту или 8. Потребление — это же значение, взвешенное по числу единиц.',
+  'usage.metric.usage.tip':
+    'Время работы, взвешенное по числу тарифных единиц, которые занимал экземпляр: количество GPU для ускоренного экземпляра, число базовых единиц флейвора для CPU. В ячейке под числом показан его состав, а для экземпляра, у которого за период менялась конфигурация, — по строке на каждую конфигурацию.',
   'usage.metric.gbDays.tip':
     'Ёмкость хранилища, проинтегрированная по времени, в ГБ × дни: 10 ГБ в течение 5 дней = 50 ГБ-дней. (= ГБ-часы ÷ 24)',
   'usage.metric.gbHours.tip':
@@ -71,6 +92,9 @@ export default {
   'usage.table.users': 'Пользователи',
   'usage.table.type': 'Тип',
   'usage.table.instance': 'Инстанс',
+  'usage.table.resized': 'Конфигурация менялась',
+  'usage.table.currentShape': 'Текущая',
+  'usage.table.shapeAndMore': '{shape} и ещё {count}',
   'usage.table.instanceType': 'Тип инстанса',
   'usage.table.instanceTypes': 'Типы инстансов',
   'usage.table.instances': 'Инстансы',
@@ -80,7 +104,7 @@ export default {
   // --- Summary tab ---
   'usage.summary.compute': 'Вычисления',
   'usage.summary.tokensOverTime': 'Токены по времени',
-  'usage.summary.gpuHoursOverTime': 'GPU-часы по времени',
+  'usage.summary.usageOverTime': 'Потребление во времени',
   'usage.summary.gbDaysOverTime': 'ГБ-дни по времени',
 
   // --- GPU Instances / Storage filters ---

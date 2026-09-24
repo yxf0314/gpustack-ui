@@ -1,5 +1,17 @@
 import _ from 'lodash';
 
+// Manufacturer display: most vendors read best all-caps (NVIDIA, AMD), but a
+// few read better capitalized (Intel). Shared by the instance-type list and the
+// create-instance drawer so both render the vendor identically.
+const CapitalizedVendors = ['intel'];
+
+export const formatManufacturer = (manufacturer?: string | null): string => {
+  if (!manufacturer) return '';
+  return CapitalizedVendors.includes(manufacturer.toLowerCase())
+    ? _.capitalize(manufacturer)
+    : _.toUpper(manufacturer);
+};
+
 export const omitPathParams = <T extends Record<string, any>>(
   params: T
 ): Omit<T, 'namespace' | 'clusterID'> => {
@@ -72,15 +84,22 @@ export const parseQuantity = (
   return { num, unit, base };
 };
 
+// ``parseQuantity`` matches the binary suffix exactly as k8s spells it ("Gi"),
+// so a lowercased "80gi" parses to null. k8s itself would reject that spelling,
+// but a value reaching the UI has passed through detection code and CRD fields
+// that need not be canonical, and silently reading null there is worse than
+// being lenient. Normalize the suffix to its canonical case before parsing.
+export const canonicalQuantityUnit = (value: string): string =>
+  value.replace(
+    /(ki|mi|gi|ti|pi|ei)$/i,
+    (m) => m[0].toUpperCase() + m[1].toLowerCase()
+  );
+
 export const parseQuantityToGi = (
   value?: string | null
 ): { value: number; unit: string; num: number } | null => {
   if (!value) return null;
-  const normalized = String(value).replace(
-    /(ki|mi|gi|ti|pi|ei)$/i,
-    (m) => m[0].toUpperCase() + m[1].toLowerCase()
-  );
-  const parsed = parseQuantity(normalized);
+  const parsed = parseQuantity(canonicalQuantityUnit(String(value)));
 
   if (!parsed || parsed.base <= 0) return null;
 

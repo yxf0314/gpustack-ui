@@ -38,7 +38,7 @@ export default {
   'noresult.resources.cluster':
     'No clusters available. Add a cluster to get started.',
   'noresult.resources.k8sCluster':
-    'No clusters available. Add a Kubernetes cluster to get started.',
+    'No clusters available. Register a Kubernetes cluster for GPU Service to get started.',
   'noresult.resources.worker':
     'No workers available. Add a worker to get started.',
   'noresult.resources.gotocluster': 'Create Your First Cluster',
@@ -69,6 +69,10 @@ export default {
   'noresult.gpuservice.storage.title': 'Нет хранилищ',
   'noresult.gpuservice.storage.subTitle': 'Хранилища ещё не добавлены.',
   'noresult.gpuservice.storage.nofound': 'Подходящие хранилища не найдены.',
+  'noresult.gpuservice.instanceType.title': 'No Instance Types',
+  'noresult.gpuservice.instanceType.subTitle':
+    'Create an instance type to get started',
+  'noresult.gpuservice.instanceType.nofound': 'No instance types found',
   'noresult.gpuservice.storageType.title': 'Нет типов хранилищ',
   'noresult.gpuservice.storageType.subTitle': 'Типы хранилищ ещё не добавлены.',
   'noresult.gpuservice.storageType.nofound':
@@ -76,7 +80,11 @@ export default {
   'noresult.gpuservice.sshkey.title': 'Нет открытых ключей SSH',
   'noresult.gpuservice.sshkey.subTitle': 'Открытые ключи SSH ещё не добавлены.',
   'noresult.gpuservice.sshkey.nofound':
-    'Подходящие открытые ключи SSH не найдены.'
+    'Подходящие открытые ключи SSH не найдены.',
+  'noresult.kvCache.title': 'No cache services yet',
+  'noresult.kvCache.subTitle':
+    'Create a cache service to reuse KV cache across model instances.',
+  'noresult.kvCache.nofound': 'No matching cache services found.'
 };
 
 // ========== To-Do: Translate Keys (Remove After Translation) ==========

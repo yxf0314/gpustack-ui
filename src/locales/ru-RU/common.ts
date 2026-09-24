@@ -38,6 +38,7 @@ export default {
   'common.button.create.now': 'Создать сейчас',
   'common.button.add.now': 'Добавить сейчас',
   'common.button.refresh': 'Обновить',
+  'common.button.reload': 'Перезагрузить',
   'common.button.delete': 'Удалить',
   'common.button.create': 'Создать',
   'common.button.clone': 'Клонировать',
@@ -79,6 +80,7 @@ export default {
   'common.title.config': 'Конфигурация',
   'common.message.fail': 'Ошибка!',
   'common.message.success': 'Успешно!',
+  'common.message.downloadFailed': 'Не удалось скачать',
   'common.delete.tips': 'Вы уверены, что хотите удалить?',
   'common.button.close': 'Закрыть',
   'common.button.done': 'Готово',
@@ -215,10 +217,17 @@ export default {
   'common.button.help': 'Помощь',
   'common.button.feedback': 'Обратная связь',
   'common.button.docs': 'Документация',
+  'common.button.imageSelector': 'Выбор образа',
   'common.button.version': 'Версия',
   'common.title.delete.confirm': 'Подтверждение удаления',
   'common.title.stop.confirm': 'Подтверждение остановки',
   'common.title.start.confirm': 'Подтверждение запуска',
+  'common.title.activate.confirm': 'Подтверждение активации',
+  'common.title.deactivate.confirm': 'Подтверждение деактивации',
+  'common.activate.single.confirm':
+    'Вы уверены, что хотите активировать <span style="font-size: 13px;font-weight: 700">{name}</span>?',
+  'common.deactivate.single.confirm':
+    'Вы уверены, что хотите деактивировать <span style="font-size: 13px;font-weight: 700">{name}</span>?',
   'common.title.recreate.confirm': 'Подтверждение пересоздания',
   'common.button.addLabel': 'Добавить метку',
   'common.button.addSelector': 'Добавить селектор',
@@ -254,8 +263,6 @@ export default {
   'common.appearance.description':
     'Настройте внешний вид интерфейса на вашем устройстве.',
   'common.security': 'Безопасность',
-  'common.security.description':
-    'Управляйте паролем для входа в учётную запись.',
   'common.page.wentwrong': 'Что-то пошло не так.',
   'common.page.refresh.tips':
     'Страница может нуждаться в обновлении. Попробуйте обновить её!',
@@ -304,7 +311,56 @@ export default {
   'common.max': 'Макс. {count}',
   'common.max.count': 'Количество {label}',
   'common.validate.group': 'Please complete the {group} configuration',
-  'common.preferences': 'Preferences'
+  'common.preferences': 'Preferences',
+  // Shared by the single-slot source config drawer (src/pages/_components/source-config)
+  'common.source.manage': 'Управление источниками',
+  'common.source.type.builtin': 'Embedded',
+  'common.source.type.builtin.desc':
+    'Serves only what this release was packaged with, with no network access.',
+  'common.source.type.url': 'URL',
+  'common.source.type.url.desc': 'Fetched by the server, can auto-update.',
+  'common.source.type.file': 'Файл Yaml',
+  'common.source.type.file.desc':
+    'Paste the content directly; never auto-updates.',
+  'common.source.url': 'URL источника',
+  'common.source.url.scheme': 'URL должен начинаться с http:// или https://',
+  'common.source.url.credentials': 'URL не должен содержать учётные данные',
+  'common.source.url.host': 'URL должен содержать имя хоста',
+  'common.source.content': 'Содержимое',
+  'common.source.content.hint':
+    'Вставьте YAML здесь или импортируйте файл, чтобы загрузить его в редактор. Отправляется только этот текст — сервер не хранит файл.',
+  'common.source.save': 'Сохранить и синхронизировать',
+  'common.source.sync.unchanged':
+    'Содержимое на удалённой стороне не изменилось.',
+  'common.source.lastSync': 'Содержимое получено: {time}',
+  'common.source.tag.custom': 'Пользовательский',
+  'common.source.tag.official': 'Official',
+  'common.source.empty.hint':
+    'Your own URL replaces the official source entirely.',
+  'common.source.empty.hint.builtin':
+    'Your own source replaces the built-in content entirely. Leave it empty to keep the built-in content.',
+  'common.source.empty.hint.file':
+    'Leave the content empty to follow the official source — {description}',
+  'common.source.empty.hint.file.builtin':
+    'Leave the content empty to keep the built-in content — {description}',
+  'common.source.reset': 'Reset to Official Source',
+  'common.source.reset.tip':
+    'Follow the official source again, applied when you save — {description}',
+  'common.source.autoUpdate': 'Auto-update',
+  'common.source.autoUpdate.interval': 'Update Interval (hours)',
+  'common.source.autoUpdate.official.tip':
+    'How often to check the official OTA server for new content. Off leaves the stored content in place until you sync it yourself.',
+  'common.source.autoUpdate.custom.tip':
+    'How often to re-fetch your URL. Off leaves your source untouched until you save or reload it.',
+  'common.source.lastUpdated': 'Last updated {time}',
+  'common.source.official.link': 'Official File',
+  'common.source.builtin.link': 'Built-in File',
+  'common.source.sync.official': 'Update Now',
+  'common.source.sync.custom': 'Update Now',
+  'common.source.sync.hint.dirty':
+    'Save first — Save writes the new URL and fetches it. Update Now only re-pulls the URL already saved.',
+  'common.source.load.failed':
+    'Could not read the stored configuration, so there is nothing here to save. Close and reopen to try again.'
 };
 
 // ========== To-Do: Translate Keys (Remove After Translation) ==========

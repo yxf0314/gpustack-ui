@@ -9,12 +9,14 @@ import {
   BackendItem,
   CatalogItem,
   CatalogSpec,
+  DeploymentImportResult,
   DraftModelItem,
   EvaluateResult,
   EvaluateSpec,
   FormData,
   GPUListItem,
   ListItem,
+  ModelCacheMetrics,
   ModelInstanceFormData,
   ModelInstanceListItem,
   ModelLoraAdapterResult
@@ -134,6 +136,21 @@ export async function queryModelInstancesList(
   );
 }
 
+export async function queryModelCacheMetrics(
+  id: number,
+  params: { window: string },
+  options?: any
+) {
+  return request<ModelCacheMetrics>(`${MODELS_API}/${id}/cache-metrics`, {
+    method: 'GET',
+    params,
+    cancelToken: options?.token,
+    // the hit rate only enriches a tooltip: a failure (or observability
+    // being disabled) drops the line instead of toasting
+    skipErrorHandler: true
+  });
+}
+
 export async function createModelInstance(params: {
   data: ModelInstanceFormData;
 }) {
@@ -176,7 +193,94 @@ export async function queryModelInstanceRestartCount(id: number) {
   });
 }
 
+/**
+ * Download an instance's complete logs across every worker and container.
+ *
+ * `responseType: 'blob'` keeps the bytes intact: one log stream comes back as
+ * text/plain, but several come back zipped, and decoding a zip as text destroys
+ * it. `getResponse` keeps the headers reachable, because the server owns the
+ * filename — and therefore the extension — via Content-Disposition.
+ *
+ * `skipErrorHandler`: on failure `response.data` is a Blob the global handler
+ * cannot read, so it would only ever show axios's own "Request failed with
+ * status code 502"; the caller reads the body itself instead. The 401 -> login
+ * redirect sits outside that guard in `request-config.tsx`, so session expiry is
+ * still handled.
+ *
+ * A Content-Length comes back only where the server can state a length that
+ * will still hold when the last byte is sent: one stream, of known size, that
+ * the size cap has not truncated. Everywhere else the ProgressEvent carries no
+ * `total` and `loaded` is all there is to show.
+ */
+export async function downloadModelInstanceLogs(
+  id: number | string,
+  options?: {
+    signal?: AbortSignal;
+    onDownloadProgress?: (event: ProgressEvent) => void;
+  }
+): Promise<{ data: Blob; headers: Record<string, any> }> {
+  return request(`${MODEL_INSTANCE_API}/${id}/logs/download`, {
+    method: 'GET',
+    responseType: 'blob',
+    getResponse: true,
+    skipErrorHandler: true,
+    signal: options?.signal,
+    onDownloadProgress: options?.onDownloadProgress
+  });
+}
+
 // ===================== Model Instances end =====================
+
+// ===================== Deployment YAML export / import =====================
+
+/**
+ * `responseType: 'blob'` + `getResponse`: the body is the YAML file itself and
+ * the server names it via Content-Disposition. `skipErrorHandler` because the
+ * failure body is a Blob the global handler cannot read; the caller decodes it.
+ */
+export async function exportModels(params: {
+  ids?: number[];
+  cluster_id?: number;
+}): Promise<{ data: Blob; headers: Record<string, any> }> {
+  return request(`${MODELS_API}/export`, {
+    method: 'POST',
+    data: params,
+    responseType: 'blob',
+    getResponse: true,
+    skipErrorHandler: true
+  });
+}
+
+/**
+ * A dry run answers with the plan and puts each problem on the entry that
+ * caused it; only a write fails with a 400 listing them. Either way the modal
+ * renders them in place, so the global toast is skipped.
+ */
+export async function importModels(
+  params: {
+    content: string;
+    // Omitted to let every entry land in the cluster its own `cluster` names,
+    // which is how a file that spans clusters restores. Set to force them all
+    // into one.
+    cluster_id?: number;
+    dry_run?: boolean;
+    // The names the caller agreed to overwrite, sent with the write. A dry
+    // run does not carry them: what it answers is what the agreement is then
+    // given for, and the write repeats the document unchanged beside it.
+    overwrite?: string[];
+  },
+  // A dry run is re-sent as the document is edited, and the one being
+  // answered is worth no more than the keystroke that superseded it — on
+  // either side of the wire.
+  options?: { signal?: AbortSignal }
+): Promise<DeploymentImportResult> {
+  return request(`${MODELS_API}/import`, {
+    method: 'POST',
+    data: params,
+    signal: options?.signal,
+    skipErrorHandler: true
+  });
+}
 
 // ===================== call huggingface quicksearch api =====================
 

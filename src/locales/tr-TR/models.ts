@@ -1,5 +1,54 @@
 export default {
   'models.button.deploy': 'Model Dağıt',
+  'models.button.exportYaml': 'YAML Dışa Aktar',
+  'models.button.importYaml': 'YAML İçe Aktar',
+  'models.form.yamlFile': 'YAML Dosyası',
+  'models.import.checking': 'Denetleniyor…',
+  'models.import.hint.nothing': 'İçe aktarılacak bir şey yok',
+  'models.import.pickFile': 'Dosya seç',
+  'models.import.empty.title': 'YAML dosyası içe aktar',
+  'models.import.empty.description':
+    'Dağıtımları tanımlayan bir dosya seçin. İçe aktarmadan önce denetlenir ve yazılacak her şey farkta eksiksiz gösterilir.',
+  'models.import.cluster.follow': 'Dosyadaki gibi',
+  'models.import.loaded':
+    '{count} dağıtım · {cluster} kümesinin şu anki hâliyle aynı',
+  'models.import.loaded.hint':
+    'Bu belge {cluster} kümesinin şu anki hâliyle aynı, yazılacak bir şey yok.',
+  'models.import.counts':
+    '{count} dağıtım · {cluster} kümesine · {changes} değişiklik',
+  'models.import.parsed': '{count} dağıtım',
+  'models.import.parsed.invalid': '{count} tanesi içe aktarılamıyor',
+  'models.import.fieldsDoc': 'Alan başvurusu',
+  'models.import.nav.invalid': 'İçe aktarılamıyor',
+  'models.import.scope.all': 'Tüm dağıtımlar ({count})',
+  'models.import.scope.whole': 'Tüm belge',
+  'models.import.scope.wholeShort': 'Tümü',
+  'models.import.pane.current': 'Kümedeki hali · salt okunur',
+  'models.import.pane.draft': 'İçe aktarılacak · düzenlenebilir',
+  'models.import.pane.absent': 'Bu adda bir dağıtım yok',
+  'models.import.pane.none': 'Bu kümede eşleşen dağıtım yok',
+  'models.import.pane.allNew':
+    'Buradaki dağıtımların hepsi yeni — hiçbiri değiştirilmiyor',
+  'models.import.pane.waiting': 'Henüz karşılaştırılacak bir şey yok',
+  'models.import.entry': '{index}. dağıtım',
+  'models.import.entry.invalid': '{index}. dağıtım içe aktarılamıyor',
+  'models.import.summary':
+    '{create} oluşturulacak, {update} güncellenecek, {unchanged} değişmedi.',
+  'models.import.summary.replaces':
+    'Güncelleme, dağıtımı dosyadaki içerikle değiştirir.',
+  'models.import.action.create': 'Oluştur',
+  'models.import.action.update': 'Güncelle',
+  'models.import.action.unchanged': 'Değişmedi',
+  'models.import.changes': '{count} değişiklik',
+  'models.import.blocked':
+    '{count} dağıtım içe aktarılamıyor. Devam etmek için bunları düzeltin.',
+  'models.import.overwrite.title': 'İçe aktarmayı onayla',
+  'models.import.overwrite.confirm':
+    'Aşağıdaki {count} mevcut dağıtım dosyadaki içerikle tümüyle değiştirilecek. Dosyada yer almayan ayarlar varsayılan değerlerine döner.',
+  'models.import.overwrite.rest':
+    'Ayrıca {create} tane oluşturulacak, {unchanged} tanesi değişmeyecek.',
+  'models.import.invalid':
+    'Dosya içe aktarılamıyor. Aşağıdaki sorunları düzeltin, yeniden denetlenir.',
   'models.title': 'Modeller',
   'models.title.edit': 'Modeli Düzenle',
   'models.title.duplicate': 'Modeli Klonla',
@@ -53,15 +102,24 @@ export default {
     "Mevcut kaynak koşullarına göre model örneklerini uygun GPU'lara otomatik olarak dağıtır.",
   'models.form.scheduletype.manual.tips':
     "Model örneklerinin dağıtılacağı GPU'ları manuel olarak belirlemenize olanak tanır.",
+  'models.form.gpuallocation': 'GPU Tahsisi',
+  'models.form.gpumode.full': 'Tam',
+  'models.form.gpumode.slicing': 'Dilimleme',
+  'models.form.gpuType.noSlicedCapacity':
+    'Bu GPU türünde dilimlenebilir kapasite yok, lütfen başka bir GPU türü seçin.',
+  'models.form.gpuType.noPartitionProfile':
+    'Bu GPU türünde kullanılabilir bölüm profili yok, lütfen başka bir GPU türü seçin.',
   'models.form.manual.schedule': 'Manuel Zamanlama',
   'models.table.gpuindex': 'GPU İndeksi',
+  'models.table.vgpu': 'vGPU',
+  'models.table.vgpu.slice': '{memory}% VRAM / {cores}% İşlem',
   'models.table.backend': 'Altyapılar',
   'models.table.acrossworker': 'İşçi Düğümler Arası Dağıtık',
   'models.table.cpuoffload': 'CPU Aktarımı',
   'models.table.layers': 'Katmanlar',
   'models.form.backend': 'Altyapı',
   'models.form.backend_parameters': 'Altyapı Parametreleri',
-  'models.instance.params.configured': 'User Configured',
+  'models.instance.params.configured': 'Kullanıcı Tarafından Yapılandırıldı',
   'models.instance.params.autoInjected': 'Otomatik Enjekte Edilen Parametreler',
   'models.search.gguf.tips':
     'GGUF modelleri llama-box kullanır (Linux, macOS ve Windows destekler).',
@@ -83,6 +141,7 @@ export default {
   'models.logs.pagination.next': 'Sonraki {lines} Satır',
   'models.logs.pagination.last': 'Son Sayfa',
   'models.logs.pagination.first': 'İlk Sayfa',
+  'models.logs.pagination.jump': 'Sayfaya Git',
   'models.form.localPath': 'Yerel Yol',
   'models.form.filePath': 'Model Yolu',
   'models.form.backendVersion': 'Altyapı Sürümü',
@@ -122,6 +181,11 @@ export default {
   'models.form.releases': 'Sürümler',
   'models.form.moreparameters': 'Parametre Açıklaması',
   'models.table.vram.allocated': 'Ayrılan VRAM',
+  'models.table.vram.workers': '{n} işçi düğüm',
+  'models.instance.workergpu': '{n} düğüm / {m} GPU',
+  'models.instance.mainworker': 'Ana İşçi Düğüm (Main)',
+  'models.instance.worker': 'İşçi Düğüm',
+  'models.instance.workerip': 'İşçi Düğüm IP:Port',
   'models.form.backend.warning':
     'Seçilen altyapı GGUF modellerini desteklemiyor. Lütfen Çıkarım Altyapısına GGUF desteği olan bir altyapı ekleyin.',
   'models.form.backend.warning.gguf':
@@ -137,6 +201,9 @@ export default {
   'models.form.submit.anyway': 'Yine de Gönder',
   'models.form.evaluating': 'Model Uyumluluğu Değerlendiriliyor',
   'models.form.incompatible': 'Uyumsuzluk Tespit Edildi',
+  'models.form.nativeAnthropicApi': 'Yerel Anthropic API',
+  'models.form.nativeAnthropicApi.tips':
+    'Çıkarım sunucusu Anthropic Messages API’sini kendisi uyguluyorsa (örneğin yeni vLLM sürümleri) etkinleştirin; /v1/messages istekleri olduğu gibi iletilir. Kapalıyken de /v1/messages çalışır, ancak önce /v1/chat/completions biçimine dönüştürülür.',
   'models.form.restart.onerror': 'Hata Durumunda Otomatik Yeniden Başlat',
   'models.form.restart.onerror.tips':
     'Hata oluştuğunda otomatik olarak yeniden başlatmayı dener.',
@@ -225,7 +292,78 @@ export default {
     'Genişletilmiş KV önbellek ve spekülatif çözümleme yalnızca yerleşik altyapılarda (vLLM / SGLang) kullanılabilir. Etkinleştirmek için lütfen altyapıyı değiştirin.',
   'models.form.kvCache.tips2':
     'Yalnızca yerleşik çıkarım altyapıları (vLLM veya SGLang) kullanılırken desteklenir.',
+  'models.form.kvCache.backend': 'Önbellek Altyapısı',
+  'models.form.kvCache.local': 'Süreç İçi Önbellek',
+  'models.form.kvCache.service.tips':
+    'Yalnızca aynı kümede bulunan ve seçilen altyapıyla uyumlu önbellek hizmetleri listelenir.',
+  'models.form.kvCache.shared.builtinBackends':
+    'Önbellek Hizmeti yalnızca yerleşik vLLM ve SGLang arka uçlarıyla desteklenir.',
+  'models.kvCache.degraded.tips':
+    'Bu örnek için paylaşılan KV önbelleği etkin değil',
+  'models.kvCache.endpointDead.tips':
+    'Bu örneğin bağlandığı paylaşılan önbellek artık kullanılamıyor; kurtarmak için örneği yeniden başlatın',
+  'models.kvCache.service': 'Önbellek Hizmeti',
+  'models.kvCache.hitRate': 'Harici Önbellek İsabet Oranı ({window})',
+  'models.kvCache.hitRate.window': '1h',
   'models.form.scheduling': 'Zamanlama',
+  'models.form.scaling': 'Zamanlanmış Ölçekleme',
+  'models.form.scaling.enable': 'Zamanlanmış ölçeklemeyi etkinleştir',
+  'models.form.scaling.enable.tips':
+    'Kopya sayısını yinelenen zaman pencerelerinde ölçekleyin (ör. gündüz daha fazla, gece daha az). Hiçbir pencerede değilken model, yapılandırılan kopya sayısını taban değer olarak kullanır.',
+  'models.form.scaling.tz.note':
+    'Zamanlama saatleri sunucu genelindeki saat dilimini kullanır (GPUSTACK_TIMEZONE, varsayılan olarak sunucunun saat dilimi).',
+  'models.form.scaling.rules': 'Kurallar',
+  'models.form.scaling.cron': 'Cron İfadesi',
+  'models.form.scaling.useCron': 'CRON ifadesi kullan',
+  'models.form.scaling.repeat': 'Tekrar',
+  'models.form.scaling.repeat.daily': 'Her gün',
+  'models.form.scaling.repeat.weekdays': 'Hafta içi (Pzt–Cum)',
+  'models.form.scaling.repeat.weekends': 'Hafta sonu (Cmt–Paz)',
+  'models.form.scaling.repeat.weekly': 'Her hafta',
+  'models.form.scaling.repeat.monthly': 'Her ay',
+  'models.form.scaling.repeat.cron': 'CRON',
+  'models.form.scaling.weekdaysLabel': 'Haftanın günleri',
+  'models.form.scaling.monthdaysLabel': 'Ayın günleri',
+  'models.form.scaling.startTime': 'Başlangıç saati',
+  'models.form.scaling.endTime': 'Bitiş saati',
+  'models.form.scaling.crossDay': 'Ertesi gün biter',
+  'models.form.scaling.nextDayBadge': '+1 gün',
+  'models.form.scaling.timezone': 'Saat dilimi',
+  'models.form.scaling.tz.all': 'Tüm zamanlamalar {tz} saat dilimini kullanır',
+  'models.form.scaling.duration': 'Süre',
+  'models.form.scaling.durationUnit': 'Zaman birimi',
+  'models.form.scaling.windowReplicas': 'Penceredeki kopyalar',
+  'models.form.scaling.unit.minutes': 'Dakika',
+  'models.form.scaling.unit.hours': 'Saat',
+  'models.form.scaling.unit.days': 'Gün',
+  'models.form.scaling.startCron': 'Pencere Başlangıcı',
+  'models.form.scaling.endCron': 'Pencere Bitişi',
+  'models.form.scaling.baseline': 'Taban Kopya Sayısı',
+  'models.form.scaling.baseline.tips':
+    'Geçerli saat hiçbir pencerede değilken kullanılan kopya sayısı.',
+  'models.form.scaling.baselineNote':
+    'Yukarıda ayarlanan Replicas değeri temel (baseline) olarak kullanılır — geçerli saat hiçbir pencerede değilken uygulanan kopya sayısı.',
+  'models.form.scaling.cron.invalid': 'Geçersiz cron ifadesi',
+  'models.form.scaling.meaning': 'Özet',
+  'models.form.scaling.summary.monthDays': 'Gün {days}',
+  'models.form.scaling.freq.minute': 'Her dakika',
+  'models.form.scaling.freq.hour': 'Saatte bir',
+  'models.form.scaling.freq.day': 'Günde bir',
+  'models.form.scaling.freq.week': 'Haftada bir',
+  'models.form.scaling.freq.month': 'Ayda bir',
+  'models.form.scaling.freq.year': 'Yılda bir',
+  'models.form.scaling.next': 'Sonraki pencere:',
+  'models.form.scaling.current': 'Geçerli pencere:',
+  'models.form.scaling.addRule': 'Kural ekle',
+  'models.form.scaling.removeRule': 'Kuralı kaldır',
+  'models.form.scaling.rules.required':
+    'En az bir kural ekleyin veya zamanlanmış ölçeklemeyi kapatın.',
+  'models.form.scaling.hint':
+    'Her kural, başlangıç saatinde belirtilen süre boyunca bir pencere açar ve o sırada kendi kopya sayısını çalıştırır. Hiçbir pencerede değilken model, yukarıdaki taban kopya sayısını kullanır. Pencereler çakıştığında en son başlayan pencere geçerli olur.',
+  'models.form.scaling.conflict':
+    'Çakışma: aynı başlangıç saatine ({times}) sahip kuralların kopya sayıları farklı. Aynı kopya sayısını veya farklı başlangıç saatleri kullanın.',
+  'models.form.scaling.overlap':
+    'Örtüşme: pencereler ({times}) örtüşüyor; örtüşen yerlerde sonra başlayan kural geçerli olur.',
   'models.form.ramRatio': 'RAM-VRAM Oranı',
   'models.form.ramSize': 'Maksimum RAM Boyutu (GiB)',
   'models.form.ramRatio.tips':
@@ -283,20 +421,26 @@ export default {
   'models.form.backend.helperText':
     'Henüz etkinleştirilmedi. Dağıtımdan sonra etkinleştirilecektir. ',
   'models.table.instance.benchmark': 'Kıyaslama Çalıştır',
-  'models.table.modelView': 'Model List',
-  'models.table.instanceView': 'Instance List',
-  'models.table.category': 'Category',
-  'models.instance.currentRun': 'Current Run',
-  'models.instance.previousRun': 'Previous Run',
-  'models.instance.startHistory': 'Run History',
+  'models.table.modelView': 'Model Listesi',
+  'models.table.instanceView': 'Örnek Listesi',
+  'models.table.category': 'Kategori',
+  'models.instance.currentRun': 'Geçerli Çalıştırma',
+  'models.instance.previousRun': 'Önceki Çalıştırma',
+  'models.instance.startHistory': 'Çalıştırma Geçmişi',
   'models.instance.startHistory.tips':
-    'Shows logs from the run before the last error-triggered restart.',
-  'models.form.lora.label': 'LoRA Adapters',
-  'models.form.lora.add': 'Add LoRA Adapter',
-  'models.form.lora.select': 'Select LoRA',
-  'models.form.lora.name': 'LoRA name',
-  'models.form.lora.rule.empty': 'Input cannot be empty',
-  'models.form.lora.rule.duplicate': 'LoRA name cannot be duplicated'
+    'Hata kaynaklı son yeniden başlatmadan önceki çalıştırmanın günlüklerini gösterir.',
+  'models.instance.logs.downloading': 'İndiriliyor… {size}',
+  'models.instance.logs.downloadingPercent': 'İndiriliyor… {percent}%',
+  'models.form.lora.label': 'LoRA Adaptörleri',
+  'models.form.lora.add': 'LoRA Adaptörü Ekle',
+  'models.form.lora.select': 'LoRA Seç',
+  'models.form.lora.name': 'LoRA adı',
+  'models.form.lora.rule.empty': 'Girdi boş olamaz',
+  'models.form.lora.rule.duplicate': 'LoRA adı yinelenemez',
+  // Model catalog source configuration
+  'models.catalog.source.title': 'Katalog Kaynağı',
+  'models.catalog.source.official':
+    "Bu sürümle paketlenenin yanı sıra GPUStack'in yayınladığı kataloğu izler."
 };
 
 // ========== To-Do: Translate Keys (Remove After Translation) ==========

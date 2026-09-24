@@ -94,6 +94,15 @@ export default {
   'resource.register.windows.support': 'Windows 10, Windows 11',
   'resources.model.instance': 'Модель экземпляра',
   'resources.worker.download.privatekey': 'Скачать приватный ключ',
+  'resources.worker.ssh.view': 'Просмотреть доступ по SSH',
+  'resources.worker.ssh.title': 'Доступ по SSH',
+  'resources.worker.ssh.host': 'Хост',
+  'resources.worker.ssh.port': 'Порт',
+  'resources.worker.ssh.command': 'Команда подключения',
+  'resources.worker.ssh.privatekey': 'Приватный ключ',
+  'resources.worker.ssh.pending': 'Пока недоступно',
+  'resources.worker.ssh.tip':
+    'Для входа используется приватный ключ этого узла. Скачайте его, выполните chmod 600 для файла, затем подключайтесь.',
   'resources.worker': 'Рабочий узел',
   'resources.modelfiles.form.exsting': 'Загружено',
   'resources.modelfiles.form.added': 'Добавлено',
@@ -110,7 +119,7 @@ export default {
     'No available clusters. Please create a cluster before adding a node.',
   'resources.metrics.details': 'Monitoring',
   'resoureces.worker.upgrade.tips':
-    'Please upgrade to match the GPUStack Server version.',
+    'The Worker version does not match the GPUStack Server version. Please keep them consistent.',
   'resources.worker.version': 'Worker Version: {version}',
   'resources.server.version': 'Server Version: {version}',
   'resources.worker.currentVersion': 'Current Version: {version}',
@@ -127,5 +136,5 @@ export default {
 // 7. 'resources.worker.maintenance.tips': 'When maintenance mode is enabled, the node will stop scheduling new model deployment tasks. Running instances will not be affected.',
 // 8. 'resources.worker.noCluster.tips': 'No available clusters. Please create a cluster before adding a node.',
 // 9. 'resources.metrics.details': 'Monitoring',
-// 10. 'resoureces.worker.upgrade.tips': 'Please upgrade to match the GPUStack Server version.'
+// 10. 'resoureces.worker.upgrade.tips': 'The Worker version does not match the GPUStack Server version. Please keep them consistent.'
 // ========== End of To-Do List ==========

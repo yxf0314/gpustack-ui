@@ -1,15 +1,33 @@
 import { PaginationKey, TABLE_SORT_DIRECTIONS } from '@/config/settings';
-import useSetChunkRequest, {
-  createAxiosToken
-} from '@/hooks/use-chunk-request';
-import useTableRowSelection from '@/hooks/use-table-row-selection';
-import useUpdateChunkedList from '@/hooks/use-update-chunk-list';
 import { handleBatchRequest } from '@/utils';
+import {
+  createAxiosToken,
+  useChunkRequest,
+  usePageVisibility,
+  useTableMultiSort,
+  useTableRowSelection,
+  useUpdateChunkedList
+} from '@gpustack/core-ui';
+import { useMemoizedFn } from 'ahooks';
 import _ from 'lodash';
 import qs from 'query-string';
 import { useEffect, useRef, useState } from 'react';
 import { usePaginationStatus } from './use-pagination-status';
-import { useTableMultiSort } from './use-table-sort';
+
+// polling cycel
+const POLLING_CYCLE = 5000;
+
+// Which query params are worth sending. `null` / `undefined` / `''` mean "this
+// filter isn't set"; `false` and `0` are real filter values and must survive.
+// The previous `!!val` test swallowed them, so a tri-state boolean filter set
+// to its negative option silently behaved as "no filter at all" — the request
+// went out without the param and the server returned everything.
+//
+// Deliberately NOT `!_.isEmpty(val)`: lodash treats every primitive except a
+// non-empty string as empty, so that predicate would also drop `page`,
+// `perPage` and every numeric filter.
+const hasQueryValue = (val: any) =>
+  val !== undefined && val !== null && val !== '';
 
 type EventsType = 'CREATE' | 'UPDATE' | 'DELETE' | 'INSERT';
 
@@ -44,6 +62,9 @@ export default function useTableFetch<T>(
     defaultQueryParams?: Record<string, any>;
     isInfiniteScroll?: boolean;
     updateManually?: boolean;
+    // set false when the caller already routes pause/resume by its own in-app
+    // tab state, otherwise the listener here would revive an inactive tab
+    pauseOnHidden?: boolean;
   } & WatchConfig
 ) {
   const {
@@ -58,7 +79,8 @@ export default function useTableFetch<T>(
     events = ['UPDATE', 'DELETE'],
     defaultQueryParams = {},
     isInfiniteScroll = false,
-    updateManually
+    updateManually,
+    pauseOnHidden = true
   } = options;
   const pollingRef = useRef<any>(null);
   const chunkRequestRef = useRef<any>(null);
@@ -102,7 +124,7 @@ export default function useTableFetch<T>(
   // for recognize the current watch trigger time, so that we can ignore the previous events
   const triggerAtRef = useRef<number>(0);
 
-  const { setChunkRequest } = useSetChunkRequest();
+  const { setChunkRequest } = useChunkRequest();
 
   const debounceSetExtraStatus = _.debounce(setExtraStatus, 3000);
 
@@ -123,7 +145,7 @@ export default function useTableFetch<T>(
     const { query, loadmore } = externalParams || {};
     try {
       const params = {
-        ..._.pickBy(query || queryParams, (val: any) => !!val)
+        ..._.pickBy(query || queryParams, hasQueryValue)
       };
       axiosTokenRef.current?.cancel?.('CANCEL_PREVIOUS_REQUEST');
       axiosTokenRef.current = createAxiosToken();
@@ -217,7 +239,11 @@ export default function useTableFetch<T>(
     limit: queryParams.perPage,
     events: events,
     dataList: dataSource.dataList,
-    triggerAt: updateManually ? triggerAtRef : undefined,
+    isNewItem: updateManually
+      ? (item: any) =>
+          !!triggerAtRef.current &&
+          Date.parse(item?.created_at) >= triggerAtRef.current
+      : undefined,
     setDataList(list, opts?: any) {
       setDataSource((pre) => {
         return {
@@ -263,15 +289,46 @@ export default function useTableFetch<T>(
       const query = _.omit(currentParams, ['page', 'perPage']);
 
       chunkRequestRef.current = setChunkRequest({
-        url: `${API}?${qs.stringify(_.pickBy(query, (val: any) => !!val))}`,
+        // Same predicate as `fetchData`: the watch stream has to carry the
+        // exact filter set the table was fetched with, or it would push rows
+        // the current filters exclude.
+        url: `${API}?${qs.stringify(_.pickBy(query, hasQueryValue))}`,
         handler: updateHandler
       });
-      // eslint-disable-next-line react-hooks/purity
       triggerAtRef.current = Date.now();
     } catch (error) {
       // ignore
     }
   };
+
+  // Release the long-lived work while the tab is hidden and rebuild it on the
+  // way back. Chunked watches are capped per host (see MAX_WATCH_REQUESTS), and
+  // a hidden tab's 5s polling burns the request budget we reserve for the
+  // visible one.
+  const cancelRequestsOnPageInactive = useMemoizedFn(() => {
+    if (watch) {
+      cancelChunkRequest();
+      // DELETE events fired while we were not watching are never re-sent, so a
+      // kept cache would resurrect deleted rows on the next watch event
+      cacheDataListRef.current = [];
+    }
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+  });
+
+  const resumeRequestsOnPageActive = useMemoizedFn(async () => {
+    // queryParamsRef, not queryParams: the current page/filters must survive
+    await fetchData({ query: { ...queryParamsRef.current } }, true);
+    if (watch) {
+      // this also resets triggerAtRef, so only items created after the resume
+      // count as new
+      createTableListChunkRequest(queryParamsRef.current);
+    } else {
+      fetchAPIWithPolling(queryParamsRef.current);
+    }
+  });
 
   const fetchAPIWithPolling = async (params: any) => {
     if (!polling || watch || !fetchAPI) return;
@@ -410,6 +467,13 @@ export default function useTableFetch<T>(
     });
   };
 
+  usePageVisibility({
+    // only the watch / polling configs hold work worth releasing
+    enabled: pauseOnHidden && (!!watch || !!polling),
+    onHidden: cancelRequestsOnPageInactive,
+    onVisible: resumeRequestsOnPageActive
+  });
+
   useEffect(() => {
     if (dataSource.loadend) {
       fetchAPIWithPolling(queryParams);
@@ -471,6 +535,8 @@ export default function useTableFetch<T>(
     loadMore,
     cancelChunkRequest,
     createTableListChunkRequest,
+    cancelRequestsOnPageInactive,
+    resumeRequestsOnPageActive,
     handleNameChange
   };
 }

@@ -1,6 +1,6 @@
 export default {
   'dashboard.workers': 'İşçi Düğümler',
-  'dashboard.deployments': 'Deployments',
+  'dashboard.deployments': 'Dağıtımlar',
   'dashboard.clusters': 'Kümeler',
   'dashboard.totalgpus': "GPU'lar",
   'dashboard.systemload': 'Sistem Yükü',
@@ -15,7 +15,7 @@ export default {
   'dashboard.usage.others': 'Diğer',
   'dashboard.tokens': 'Token Kullanımı',
   'dashboard.topusers': 'En Aktif Kullanıcılar',
-  'dashboard.activeDeployments': 'Active Deployments',
+  'dashboard.activeDeployments': 'Etkin Dağıtımlar',
   'dashboard.usageByModel': 'Modele Göre Kullanım',
   'dashboard.topTokenUsageByUser': 'Kullanıcıya Göre İlk 10 Token Kullanımı',
   'dashboard.allocatevram': 'Ayrılan VRAM / RAM',

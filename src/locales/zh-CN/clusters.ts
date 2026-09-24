@@ -13,6 +13,8 @@ export default {
   'clusters.button.addNodePool': '添加节点池',
   'clusters.button.add.credential': '添加 {provider} 凭证',
   'clusters.credential.title': '云凭证',
+  'clusters.credential.signinToCreate':
+    '还没有{name}？<a href="{link}" target="_blank">登录或注册</a>后创建。',
   'clusters.credential.token': '访问令牌',
   'clusters.workerpool.region': '区域',
   'clusters.workerpool.zone': '可用区',
@@ -70,8 +72,13 @@ export default {
     '<span class="bold-text">非 Docker</span> 集群请前往集群页面注册集群或管理节点池。',
   'clusters.addworker.selectGPU': '选择 GPU 厂商',
   'clusters.addworker.selectGPU.multiTag': '可多选',
-  'clusters.addworker.selectGPU.subtitle':
-    '可选择多个 GPU 厂商，或不选择以用于仅 CPU 的集群',
+  'clusters.addworker.selectHardware': '选择硬件类型',
+  'clusters.addworker.selectHardware.subtitle':
+    '选择该集群需要部署 Worker 的所有硬件类型',
+  'clusters.addworker.cpuNode.tips':
+    '在所有没有 GPU 的节点上部署 Worker。若控制平面与 GPU 节点在同一集群，且不希望 CPU 节点上运行 Worker，请不要选中。',
+  'clusters.addworker.noWorkerSelected.error':
+    '请至少选择一种硬件类型 —— CPU Node 和 GPU 厂商都不选时，不会部署任何 Worker。',
   'clusters.addworker.checkEnv': '检查环境',
   'clusters.addworker.checkEnv.cpuOnlyTips':
     '使用以下命令验证 Kubernetes 集群中至少有一个就绪节点。你正在注册仅 CPU 的集群。',
@@ -105,18 +112,31 @@ export default {
   'clusters.addworker.cacheVolume.holder':
     '例如：/data/cache（路径需以 / 开头）',
   'clusters.addworker.vendorNotes.title': '{vendor}设备注意事项',
-  'clusters.button.genToken':
-    '需要创建令牌？点击<a href="{link}" target="_blank">这里</a>。',
   'clusters.addworker.amdNotes-01': `如果 <span class="bold-text">/opt/rocm</span> 目录不存在，请创建一个指向已安装 ROCm 路径的符号链接：
     <span class="bold-text">ln -s /path/to/rocm /opt/rocm</span>。`,
+  'clusters.addworker.amdNotes-02': `如果主机上管理了多个 ROCm 版本，必须挂载 <span class="bold-text">/opt/rocm/lib</span>，以避免设备检测失败。`,
   'clusters.addworker.message.success_single':
     '已将 {count} 个新节点添加到集群中。',
   'clusters.addworker.message.success_multiple':
     '已将 {count} 个新节点添加到集群中。',
-  'clusters.create.serverUrl': 'GPUStack Server 节点地址',
+  'clusters.create.serverUrl': 'GPUStack Server URL',
   'clusters.create.workerConfig': '节点配置',
-  'clusters.edit.k8sOptions.changed.tip':
-    '您已修改 Kubernetes 选项，需要在目标集群上重新运行注册命令才会生效。',
+  'clusters.chartValues.title': 'Chart Values（YAML）',
+  'clusters.chartValues.tip':
+    'GPUStack Helm chart 的 values，key 就是 chart 自己的 key，原样合并到服务端派生的值之上。上面没有对应字段、但 chart 及其子 chart 提供的能力都可以在这里配置 —— 例如关掉集群已自备的组件。与 Helm 一致，list 是整体替换而非追加。',
+  'clusters.chartValues.reapply.tip':
+    '保存集群不会改动 Kubernetes 里的任何东西。改完需要重新走「注册集群」拿到 manifest 并再次 apply —— 集群内的 Job 会比较 manifest 要求的配置与 release 实际安装的配置，只在不同时才升级。',
+  'clusters.chartValues.doc.chart': 'Chart values',
+  'clusters.chartValues.doc.operator': 'Operator chart',
+  'clusters.chartValues.error.invalidYaml': 'YAML 格式错误：{reason}',
+  'clusters.chartValues.error.notJson':
+    '{path} 的值不是字符串、数字、布尔、列表或映射 —— YAML 把它解析成了日期或二进制值，无法原样传递。加引号可以让它保持为文本。',
+  'clusters.chartValues.error.unsafeInteger':
+    '{path} 的整数超出了可精确表示的范围 —— 解析 YAML 时已经发生舍入，发送出去的会是另一个值。加引号可以保住原始数字。',
+  'clusters.chartValues.error.notMapping':
+    'Chart values 必须是 YAML 键值映射，不能是单个值或数组。',
+  'clusters.edit.registration.changed.tip':
+    '您已修改注册节点时生效的配置，需要在目标集群上重新运行注册命令才会生效。',
   'clusters.addworker.containerName': '节点容器名称',
   'clusters.addworker.containerName.tips': '为节点容器指定一个名称。',
   'clusters.addworker.dataVolume': 'GPUStack 数据卷',
@@ -124,7 +144,7 @@ export default {
   'clusters.table.ip.internal': '内',
   'clusters.table.ip.external': '外',
   'clusters.form.serverUrl.tips':
-    '如果节点无法直接访问 GPUStack Server，则指定一个可访问的外部 GPUStack Server 地址。',
+    '如果节点无法直接访问 GPUStack Server，则指定一个可访问的外部 GPUStack Server 地址。例如：{example}',
   'clusters.form.setDefault': '设为默认',
   'clusters.form.setDefault.tips': '部署时的默认集群。',
   'clusters.addworker.noClusters': '无可用的 Docker 集群',
@@ -167,6 +187,8 @@ export default {
   'clusters.systemDefaultContainerRegistry.title': '默认容器镜像仓库',
   'clusters.systemDefaultContainerRegistry.tip':
     '用于解析该集群 GPUStack 镜像的默认镜像仓库。未设置时回退到服务端默认值。',
+  'clusters.systemDefaultContainerRegistry.dockerHubUnreachable':
+    '{provider} 的实例无法访问 Docker Hub，请填写镜像加速地址或私有仓库。',
   'clusters.k8sOptions.title': 'Kubernetes 部署选项',
   'clusters.imageCredentials.title': '镜像仓库凭证',
   'clusters.imageCredentials.add': '添加凭证',
@@ -191,5 +213,14 @@ export default {
     '适用于按需分配 GPU 计算资源的场景，例如交互式开发、训练任务或自定义运行环境。',
   'clusters.gpuInstances.staticAddress': 'GPU 服务静态访问地址',
   'clusters.gpuInstances.staticAddress.tip':
-    'Operator 访问该集群 GPU 实例所使用的静态地址（例如 LoadBalancer VIP）。可选。'
+    'Operator 访问该集群 GPU 实例所使用的静态地址（例如 LoadBalancer VIP）。Operator 默认值：留空，此时访问地址由主机 IP 生成。修改后不会改写已部署实例的访问地址，仅对新建的实例生效。',
+  'clusters.gpuInstances.derivedFromNode': '从节点自动推导实例类型',
+  'clusters.gpuInstances.derivedFromNode.tip':
+    'Operator 是否根据节点硬件自动推导实例类型（及其对应的队列）。启用：Operator 为每种节点规格自动创建实例类型。禁用：Operator 仅对齐资源规格，实例类型全部由管理员自行定义。Operator 默认值：启用。',
+  'clusters.gpuInstances.mixedOnNode': '允许节点混合实例类型',
+  'clusters.gpuInstances.mixedOnNode.tip':
+    '同一个节点是否可以同时提供加速型和纯 CPU 实例类型。启用：节点会被归入其所能承载的每一种类型。禁用：带加速卡的节点只产生加速型实例类型，纯 CPU 节点只产生通用实例类型。Operator 默认值：启用。',
+  'clusters.gpuInstances.setting.enabled': '启用',
+  'clusters.gpuInstances.setting.disabled': '禁用',
+  'clusters.gpuInstances.setting.unmanaged': '未托管（沿用集群自身的设置）'
 };

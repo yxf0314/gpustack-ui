@@ -71,7 +71,7 @@ const useStyles = createStyles(({ token, css }) => ({
     align-items: flex-start;
     color: ${token.colorText};
     .title {
-      font-weight: bold;
+      font-weight: var(--font-weight-semibold);
     }
   `,
   welcome: css`
@@ -238,7 +238,9 @@ const LoginForm = () => {
             <ButtonText>
               {intl.formatMessage(
                 { id: 'common.external.login' },
-                { type: 'SSO' }
+                {
+                  type: SSOAuth.displayName
+                }
               )}
             </ButtonText>
           </ButtonWrapper>
@@ -284,7 +286,7 @@ const LoginForm = () => {
               <BackButton onClick={handleLoginWithThirdParty}>
                 {intl.formatMessage(
                   { id: 'common.external.login' },
-                  { type: 'SSO' }
+                  { type: SSOAuth.displayName }
                 )}
               </BackButton>
             )}

@@ -9,12 +9,16 @@ import CPUOffloadingCell from '../instance-cells/cpu-offloading-cell';
 import DistributeInfoCell from '../instance-cells/distribute-info-cell';
 import DownloadingStatusCell from '../instance-cells/downloading-status-cell';
 import InstanceStatusCell from '../instance-cells/instance-status-cell';
+import KVCacheDegradedCell from '../instance-cells/kv-cache-degraded-cell';
 import NameCell from '../instance-cells/name-cell';
 
 interface InstanceItemProps {
   instanceData: ModelInstanceListItem;
   workerList: WorkerListItem[];
   modelData?: any;
+  // undefined = not read (no cache service, or metrics unavailable);
+  // null = read but the engine reports no lookups in the window
+  cacheHitRate?: number | null;
   defaultOpenId: string;
   // Column grid shared from the parent SealTable so this child row aligns
   // its cells to the parent columns instead of guessing paddings.
@@ -28,6 +32,7 @@ const InstanceItem: React.FC<InstanceItemProps> = ({
   instanceData,
   workerList,
   modelData,
+  cacheHitRate,
   defaultOpenId,
   gridTemplate,
   prefixWidth = 0,
@@ -52,6 +57,7 @@ const InstanceItem: React.FC<InstanceItemProps> = ({
         <NameCell
           record={instanceData}
           modelData={modelData}
+          cacheHitRate={cacheHitRate}
           defaultOpenId={defaultOpenId}
         ></NameCell>
       </ExpandedRowGrid.Cell>
@@ -70,6 +76,7 @@ const InstanceItem: React.FC<InstanceItemProps> = ({
           record={instanceData}
           onSelect={handleChildSelect}
         />
+        <KVCacheDegradedCell record={instanceData}></KVCacheDegradedCell>
         <DownloadingStatusCell
           backend={modelData?.backend}
           distributed_servers={instanceData.distributed_servers}

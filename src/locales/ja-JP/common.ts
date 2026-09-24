@@ -38,6 +38,7 @@ export default {
   'common.button.create.now': '今すぐ作成',
   'common.button.add.now': '今すぐ追加',
   'common.button.refresh': '更新',
+  'common.button.reload': '再読み込み',
   'common.button.delete': '削除',
   'common.button.create': '作成',
   'common.button.clone': '複製',
@@ -79,6 +80,7 @@ export default {
   'common.title.config': '設定',
   'common.message.fail': '失敗！',
   'common.message.success': '成功！',
+  'common.message.downloadFailed': 'ダウンロードに失敗しました',
   'common.delete.tips': '本当に削除しますか？',
   'common.button.close': '閉じる',
   'common.button.done': '完了',
@@ -217,10 +219,17 @@ export default {
   'common.button.help': 'ヘルプ',
   'common.button.feedback': 'フィードバック',
   'common.button.docs': 'ドキュメント',
+  'common.button.imageSelector': 'イメージセレクター',
   'common.button.version': 'バージョン',
   'common.title.delete.confirm': '削除を確認',
   'common.title.stop.confirm': '停止を確認',
   'common.title.start.confirm': '開始を確認',
+  'common.title.activate.confirm': '有効化を確認',
+  'common.title.deactivate.confirm': '無効化を確認',
+  'common.activate.single.confirm':
+    '<span style="font-size: 13px;font-weight: 700">{name}</span> を有効化してもよろしいですか？',
+  'common.deactivate.single.confirm':
+    '<span style="font-size: 13px;font-weight: 700">{name}</span> を無効化してもよろしいですか？',
   'common.title.recreate.confirm': '再作成を確認',
   'common.button.addLabel': 'ラベルを追加',
   'common.button.addSelector': 'セレクターを追加',
@@ -255,8 +264,6 @@ export default {
   'common.appearance.description':
     'デバイス上でのインターフェースの表示をカスタマイズします。',
   'common.security': 'セキュリティ',
-  'common.security.description':
-    'アカウントへのログインに使用するパスワードを管理します。',
   'common.page.wentwrong': 'Something went wrong.',
   'common.page.refresh.tips':
     'The page may need to be updated. Try refreshing it!',
@@ -305,7 +312,56 @@ export default {
   'common.max': '最大 {count}',
   'common.max.count': '{label} 数',
   'common.validate.group': 'Please complete the {group} configuration',
-  'common.preferences': 'Preferences'
+  'common.preferences': 'Preferences',
+  // Shared by the single-slot source config drawer (src/pages/_components/source-config)
+  'common.source.manage': 'ソースの管理',
+  'common.source.type.builtin': 'Embedded',
+  'common.source.type.builtin.desc':
+    'Serves only what this release was packaged with, with no network access.',
+  'common.source.type.url': 'URL',
+  'common.source.type.url.desc': 'Fetched by the server, can auto-update.',
+  'common.source.type.file': 'Yaml ファイル',
+  'common.source.type.file.desc':
+    'Paste the content directly; never auto-updates.',
+  'common.source.url': 'ソース URL',
+  'common.source.url.scheme':
+    'URL は http:// または https:// で始まる必要があります',
+  'common.source.url.credentials': 'URL に認証情報を含めることはできません',
+  'common.source.url.host': 'URL にホスト名を含める必要があります',
+  'common.source.content': '内容',
+  'common.source.content.hint':
+    'ここに YAML を貼り付けるか、ファイルをインポートしてエディターに読み込んでください。送信されるのはこのテキストのみで、サーバーはファイルを保持しません。',
+  'common.source.save': '保存して同期',
+  'common.source.sync.unchanged': 'リモートの内容に変更はありません。',
+  'common.source.lastSync': '内容の取得時刻: {time}',
+  'common.source.tag.custom': 'カスタム',
+  'common.source.tag.official': 'Official',
+  'common.source.empty.hint':
+    'Your own URL replaces the official source entirely.',
+  'common.source.empty.hint.builtin':
+    'Your own source replaces the built-in content entirely. Leave it empty to keep the built-in content.',
+  'common.source.empty.hint.file':
+    'Leave the content empty to follow the official source — {description}',
+  'common.source.empty.hint.file.builtin':
+    'Leave the content empty to keep the built-in content — {description}',
+  'common.source.reset': 'Reset to Official Source',
+  'common.source.reset.tip':
+    'Follow the official source again, applied when you save — {description}',
+  'common.source.autoUpdate': 'Auto-update',
+  'common.source.autoUpdate.interval': 'Update Interval (hours)',
+  'common.source.autoUpdate.official.tip':
+    'How often to check the official OTA server for new content. Off leaves the stored content in place until you sync it yourself.',
+  'common.source.autoUpdate.custom.tip':
+    'How often to re-fetch your URL. Off leaves your source untouched until you save or reload it.',
+  'common.source.lastUpdated': 'Last updated {time}',
+  'common.source.official.link': 'Official File',
+  'common.source.builtin.link': 'Built-in File',
+  'common.source.sync.official': 'Update Now',
+  'common.source.sync.custom': 'Update Now',
+  'common.source.sync.hint.dirty':
+    'Save first — Save writes the new URL and fetches it. Update Now only re-pulls the URL already saved.',
+  'common.source.load.failed':
+    'Could not read the stored configuration, so there is nothing here to save. Close and reopen to try again.'
 };
 
 // ========== To-Do: Translate Keys (Remove After Translation) ==========

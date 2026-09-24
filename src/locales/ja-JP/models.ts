@@ -1,5 +1,55 @@
 export default {
   'models.button.deploy': 'モデルをデプロイ',
+  'models.button.exportYaml': 'Export YAML',
+  'models.button.importYaml': 'Import YAML',
+  'models.form.yamlFile': 'YAML ファイル',
+  'models.import.checking': '検証中…',
+  'models.import.hint.nothing': 'インポートできるデプロイメントがありません',
+  'models.import.pickFile': 'ファイルを選択',
+  'models.import.empty.title': 'YAML ファイルをインポート',
+  'models.import.empty.description':
+    'デプロイメントを記述したファイルを選択してください。インポート前に比較し、書き込まれる内容を差分ですべて確認できます。',
+  'models.import.cluster.follow': 'ファイルに従う',
+  'models.import.loaded':
+    '{count} 件のデプロイメント · {cluster} クラスターの現状と一致',
+  'models.import.loaded.hint':
+    'このドキュメントは {cluster} クラスターの現状と一致しているため、書き込む内容はありません。',
+  'models.import.counts':
+    '{count} 件のデプロイメント · {cluster} へインポート · {changes} 件の変更',
+  'models.import.parsed': '{count} 件のデプロイメント',
+  'models.import.parsed.invalid': '{count} 件はインポートできません',
+  'models.import.fieldsDoc': 'フィールド説明',
+  'models.import.nav.invalid': 'インポート不可',
+  'models.import.scope.all': '全 {count} 件のデプロイメント',
+  'models.import.scope.whole': 'ドキュメント全体',
+  'models.import.scope.wholeShort': '全体',
+  'models.import.pane.current': 'クラスターの現状 · 読み取り専用',
+  'models.import.pane.draft': 'インポート内容 · 編集可能',
+  'models.import.pane.absent': '同名のデプロイメントはありません',
+  'models.import.pane.none': 'クラスターに一致するデプロイメントはありません',
+  'models.import.pane.allNew':
+    'すべて新規のデプロイメントです。置き換えられるものはありません',
+  'models.import.pane.waiting': '比較する内容はまだありません',
+  'models.import.entry': '{index} 番目のデプロイメント',
+  'models.import.entry.invalid':
+    '{index} 番目のデプロイメントはインポートできません',
+  'models.import.summary':
+    '新規作成 {create} 件、更新 {update} 件、変更なし {unchanged} 件。',
+  'models.import.summary.replaces':
+    '更新はファイルの内容で全体が置き換えられます。',
+  'models.import.action.create': '新規作成',
+  'models.import.action.update': '更新',
+  'models.import.action.unchanged': '変更なし',
+  'models.import.changes': '{count} 件の変更',
+  'models.import.blocked':
+    '{count} 件のデプロイメントをインポートできません。修正してから送信してください。',
+  'models.import.overwrite.title': 'インポートの確認',
+  'models.import.overwrite.confirm':
+    '以下の {count} 件の既存デプロイメントがファイルの内容で全体的に置き換えられます。ファイルに記載のない設定は既定値に戻ります。',
+  'models.import.overwrite.rest':
+    'さらに {create} 件を新規作成し、{unchanged} 件は変更されません。',
+  'models.import.invalid':
+    'このファイルはインポートできません。以下の問題を修正すると、再度検証されます。',
   'models.title': 'モデル',
   'models.title.edit': 'モデルを編集',
   'models.title.duplicate': 'モデルをクローン',
@@ -54,8 +104,17 @@ export default {
     '現在のリソース状況に基づいて、モデルインスタンスを適切なGPUに自動的にデプロイします。',
   'models.form.scheduletype.manual.tips':
     'モデルインスタンスをデプロイするGPUを手動で指定できます。',
+  'models.form.gpuallocation': 'GPU 割り当て',
+  'models.form.gpumode.full': '全体',
+  'models.form.gpumode.slicing': '分割',
+  'models.form.gpuType.noSlicedCapacity':
+    'この GPU タイプに分割可能な容量がありません。別の GPU タイプを選択してください。',
+  'models.form.gpuType.noPartitionProfile':
+    'この GPU タイプに利用可能な分割プロファイルがありません。別の GPU タイプを選択してください。',
   'models.form.manual.schedule': '手動スケジュール',
   'models.table.gpuindex': 'GPUインデックス',
+  'models.table.vgpu': 'vGPU',
+  'models.table.vgpu.slice': '{memory}% VRAM / {cores}% 演算',
   'models.table.backend': 'バックエンド',
   'models.table.acrossworker': 'ワーカー間で分散',
   'models.table.cpuoffload': 'CPUオフロード',
@@ -84,6 +143,7 @@ export default {
   'models.logs.pagination.next': '次の{lines}行',
   'models.logs.pagination.last': '最終ページ',
   'models.logs.pagination.first': '最初のページ',
+  'models.logs.pagination.jump': '指定ページへ移動',
   'models.form.localPath': 'ローカルパス',
   'models.form.filePath': 'モデルパス',
   'models.form.backendVersion': 'バックエンドバージョン',
@@ -122,6 +182,11 @@ export default {
   'models.form.releases': 'リリース',
   'models.form.moreparameters': 'パラメータ説明',
   'models.table.vram.allocated': '割り当て済みVRAM',
+  'models.table.vram.workers': '{n} ワーカー',
+  'models.instance.workergpu': '{n} ワーカー / {m} GPU',
+  'models.instance.mainworker': 'メインワーカー（Main）',
+  'models.instance.worker': '実行ワーカー',
+  'models.instance.workerip': 'ワーカー IP:Port',
   'models.form.backend.warning':
     'The selected backend does not support GGUF models. Please add a backend with GGUF support in the Inference Backend.',
   'models.form.backend.warning.gguf':
@@ -137,6 +202,9 @@ export default {
   'models.form.submit.anyway': 'このまま送信',
   'models.form.evaluating': 'モデルの互換性を評価中',
   'models.form.incompatible': '互換性の問題が検出されました',
+  'models.form.nativeAnthropicApi': 'ネイティブ Anthropic API',
+  'models.form.nativeAnthropicApi.tips':
+    '推論サーバー自体が Anthropic Messages API を実装している場合（新しめの vLLM など）に有効にします。/v1/messages へのリクエストがそのまま転送されます。無効のままでも /v1/messages は利用できますが、先に /v1/chat/completions へ変換されます。',
   'models.form.restart.onerror': 'エラー時に自動再起動',
   'models.form.restart.onerror.tips':
     'エラーが発生した場合、自動的に再起動を試みます。',
@@ -226,7 +294,79 @@ export default {
     'Extended KV cache and speculative decoding are only available with built-in backends (vLLM / SGLang), Please switch the backend to enable them.',
   'models.form.kvCache.tips2':
     'Only supported when using built-in inference backends (vLLM or SGLang).',
+  'models.form.kvCache.backend': 'Cache Backend',
+  'models.form.kvCache.local': 'In-Process Cache',
+  'models.form.kvCache.service.tips':
+    'Only cache services in the same cluster and compatible with the selected backend are listed.',
+  'models.form.kvCache.shared.builtinBackends':
+    'Cache Service is only supported with the built-in vLLM and SGLang backends.',
+  'models.kvCache.degraded.tips':
+    'Shared KV cache is not active for this instance',
+  'models.kvCache.endpointDead.tips':
+    'The shared cache this instance attached to is no longer available; restart the instance to recover',
+  'models.kvCache.service': 'Cache Service',
+  'models.kvCache.hitRate': 'External Cache Hit Rate ({window})',
+  'models.kvCache.hitRate.window': '1h',
   'models.form.scheduling': 'Scheduling',
+  'models.form.scaling': 'スケジュールスケーリング',
+  'models.form.scaling.enable': 'スケジュールスケーリングを有効化',
+  'models.form.scaling.enable.tips':
+    '繰り返しの時間ウィンドウ内でレプリカ数を調整します（例：昼は多く、夜は少なく）。どのウィンドウにも該当しない場合、モデルは設定されたレプリカ数をベースラインとして使用します。',
+  'models.form.scaling.tz.note':
+    'スケジュール時刻はサーバー全体のタイムゾーン（GPUSTACK_TIMEZONE、既定ではサーバーのタイムゾーン）を使用します。',
+  'models.form.scaling.rules': 'ルール',
+  'models.form.scaling.cron': 'Cron 式',
+  'models.form.scaling.useCron': 'CRON 式を使用',
+  'models.form.scaling.repeat': '繰り返し',
+  'models.form.scaling.repeat.daily': '毎日',
+  'models.form.scaling.repeat.weekdays': '平日（月〜金）',
+  'models.form.scaling.repeat.weekends': '週末（土・日）',
+  'models.form.scaling.repeat.weekly': '毎週',
+  'models.form.scaling.repeat.monthly': '毎月',
+  'models.form.scaling.repeat.cron': 'CRON',
+  'models.form.scaling.weekdaysLabel': '曜日',
+  'models.form.scaling.monthdaysLabel': '日付',
+  'models.form.scaling.startTime': '開始時刻',
+  'models.form.scaling.endTime': '終了時刻',
+  'models.form.scaling.crossDay': '翌日に終了',
+  'models.form.scaling.nextDayBadge': '+1 日',
+  'models.form.scaling.timezone': 'タイムゾーン',
+  'models.form.scaling.tz.all':
+    'すべてのスケジュールは {tz} タイムゾーンを使用します',
+  'models.form.scaling.duration': '継続時間',
+  'models.form.scaling.durationUnit': '時間単位',
+  'models.form.scaling.windowReplicas': 'ウィンドウ内のレプリカ',
+  'models.form.scaling.unit.minutes': '分',
+  'models.form.scaling.unit.hours': '時間',
+  'models.form.scaling.unit.days': '日',
+  'models.form.scaling.startCron': 'ウィンドウ開始',
+  'models.form.scaling.endCron': 'ウィンドウ終了',
+  'models.form.scaling.baseline': 'ベースラインレプリカ数',
+  'models.form.scaling.baseline.tips':
+    '現在時刻がどのウィンドウにも該当しない場合に使用されるレプリカ数です。',
+  'models.form.scaling.baselineNote':
+    '上記で設定した Replicas がベースラインとして使用されます。現在時刻がどのウィンドウにも該当しない場合に適用されるレプリカ数です。',
+  'models.form.scaling.cron.invalid': '無効な cron 式です',
+  'models.form.scaling.meaning': '概要',
+  'models.form.scaling.summary.monthDays': '{days} 日',
+  'models.form.scaling.freq.minute': '毎分',
+  'models.form.scaling.freq.hour': '1時間に1回',
+  'models.form.scaling.freq.day': '1日に1回',
+  'models.form.scaling.freq.week': '週に1回',
+  'models.form.scaling.freq.month': '月に1回',
+  'models.form.scaling.freq.year': '年に1回',
+  'models.form.scaling.next': '次のウィンドウ：',
+  'models.form.scaling.current': '現在のウィンドウ：',
+  'models.form.scaling.addRule': 'ルールを追加',
+  'models.form.scaling.removeRule': 'ルールを削除',
+  'models.form.scaling.rules.required':
+    'ルールを少なくとも 1 つ追加するか、スケジュールスケーリングを無効にしてください。',
+  'models.form.scaling.hint':
+    '各ルールは開始時刻に指定の継続時間だけウィンドウを開き、その間はそのレプリカ数を維持します。どのウィンドウにも該当しない場合、モデルは上記のベースラインレプリカ数を使用します。ウィンドウが重なる場合は、最も遅く開始したウィンドウが優先されます。',
+  'models.form.scaling.conflict':
+    '競合：開始時刻が同じ（{times}）ルールのレプリカ数が異なります。同じレプリカ数にするか、開始時刻を分けてください。',
+  'models.form.scaling.overlap':
+    '重複：ウィンドウ（{times}）が重複しています。重複する部分では、後から始まるルールが優先されます。',
   'models.form.ramRatio': 'RAM-to-VRAM Ratio',
   'models.form.ramSize': 'Maximum RAM Size (GiB)',
   'models.form.ramRatio.tips':
@@ -291,12 +431,18 @@ export default {
   'models.instance.startHistory': 'Run History',
   'models.instance.startHistory.tips':
     'Shows logs from the run before the last error-triggered restart.',
+  'models.instance.logs.downloading': 'ダウンロード中… {size}',
+  'models.instance.logs.downloadingPercent': 'ダウンロード中… {percent}%',
   'models.form.lora.label': 'LoRA Adapters',
   'models.form.lora.add': 'Add LoRA Adapter',
   'models.form.lora.select': 'Select LoRA',
   'models.form.lora.name': 'LoRA name',
   'models.form.lora.rule.empty': 'Input cannot be empty',
-  'models.form.lora.rule.duplicate': 'LoRA name cannot be duplicated'
+  'models.form.lora.rule.duplicate': 'LoRA name cannot be duplicated',
+  // Model catalog source configuration
+  'models.catalog.source.title': 'カタログのソース',
+  'models.catalog.source.official':
+    'Follows the catalog GPUStack publishes, on top of the one packaged with this release.'
 };
 
 // ========== To-Do: Translate Keys (Remove After Translation) ==========

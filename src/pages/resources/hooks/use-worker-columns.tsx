@@ -5,7 +5,6 @@ import { usePluginListColumns } from '@/plugins/list-extra-columns';
 import { convertFileSize } from '@/utils';
 import {
   DeleteOutlined,
-  DownloadOutlined,
   EditOutlined,
   InfoCircleOutlined,
   SafetyOutlined,
@@ -19,16 +18,14 @@ import {
   InfoColumn,
   LabelCell,
   ProgressBar,
-  StatusTag
+  StatusTag,
+  type TableColumnProps
 } from '@gpustack/core-ui';
 import { useIntl } from '@umijs/max';
-import { Tooltip } from 'antd';
-import { ColumnsType } from 'antd/lib/table';
+import { Flex, Tooltip } from 'antd';
 import { useAtom, useAtomValue } from 'jotai';
 import _ from 'lodash';
 import { useEffect, useMemo, useState } from 'react';
-import semverCoerce from 'semver/functions/coerce';
-import semverGt from 'semver/functions/gt';
 import { status, WorkerStatusMap, WorkerStatusMapValue } from '../config';
 import { Filesystem, GPUDeviceItem, ListItem } from '../config/types';
 import workerCss from '../styles/worker.less';
@@ -49,9 +46,13 @@ const ActionList = [
   //   icon: <FileTextOutlined></FileTextOutlined>
   // },
   {
-    label: 'resources.worker.download.privatekey',
-    key: 'download_ssh_key',
-    icon: <DownloadOutlined />
+    // Opens a dialog holding both the connection details and the private key
+    // download: for Shuihua the reachable endpoint is a mapped port on a
+    // shared address that only `provider_config` knows, so the key alone does
+    // not get the user in.
+    label: 'resources.worker.ssh.view',
+    key: 'view_ssh',
+    icon: <IconFont type="icon-ssh-outlined" />
   },
   {
     label: 'resources.worker.maintenance.enable',
@@ -103,10 +104,9 @@ const showUpgrade = (
   workerVersion: string,
   currentVersion: string
 ): boolean => {
-  const w_ver = semverCoerce(workerVersion);
-  const c_ver = semverCoerce(currentVersion);
-
-  return !!w_ver && !!c_ver && semverGt(c_ver, w_ver);
+  return (
+    !!workerVersion && !!currentVersion && workerVersion !== currentVersion
+  );
 };
 
 const formateUtilization = (val1: number, val2: number): number =>
@@ -121,14 +121,14 @@ const calcStorage = (files: Filesystem[]) => {
 };
 
 const GPUCell = ({ devices }: { devices: GPUDeviceItem[] }) => (
-  <span className="flex-column flex-gap-2">
+  <Flex orientation="vertical" gap={4} style={{ width: '100%' }}>
     {_.map(
       _.sortBy(devices || [], ['index']),
       (item: GPUDeviceItem, index: number) => (
-        <span className="flex-center" key={index}>
+        <span className="flex-center" key={index} style={{ height: 18 }}>
           <span
             className="m-r-5"
-            style={{ display: 'flex', width: 25, lineHeight: 1 }}
+            style={{ display: 'flex', width: 30, lineHeight: 1 }}
           >
             [{item.index}]
           </span>
@@ -140,7 +140,7 @@ const GPUCell = ({ devices }: { devices: GPUDeviceItem[] }) => (
         </span>
       )
     )}
-  </span>
+  </Flex>
 );
 
 // index + ProgressBar
@@ -170,11 +170,11 @@ const VRAMItem = ({
       <span className="flex-center" style={{ cursor: 'pointer' }}>
         <span
           className="m-r-5"
-          style={{ display: 'flex', width: 25, lineHeight: 1.2 }}
+          style={{ display: 'flex', width: 30, lineHeight: 1 }}
         >
           <span
             style={{
-              paddingBottom: 2,
+              paddingBottom: 3,
               borderBottom: '1px dashed var(--ant-blue-6)'
             }}
           >
@@ -187,6 +187,10 @@ const VRAMItem = ({
   );
 };
 
+// `rIndex` is the row's position in the current page. SealTable's `render`
+// signature is `(text, record)` — no row index argument — but the row context
+// merges `rowIndex` into the record it hands the cell, so the caller reads it
+// off `record.rowIndex`.
 const VRAMCell = ({
   devices,
   rIndex,
@@ -198,7 +202,7 @@ const VRAMCell = ({
   loadend: boolean;
   firstLoad: boolean;
 }) => (
-  <span className="flex-column flex-gap-2">
+  <Flex orientation="vertical" gap={4} style={{ width: '100%' }}>
     {_.map(
       _.sortBy(devices || [], ['index']),
       (item: GPUDeviceItem, index: number) => (
@@ -209,7 +213,7 @@ const VRAMCell = ({
         />
       )
     )}
-  </span>
+  </Flex>
 );
 
 const StorageCell = ({ files }: { files: Filesystem[] }) => {
@@ -263,7 +267,7 @@ const useWorkerColumns = ({
   firstLoad: boolean;
   sortOrder: string[];
   handleSelect: (action: string, record: ListItem) => void;
-}): ColumnsType<ListItem> => {
+}): TableColumnProps[] => {
   const intl = useIntl();
   const systemConfig = useAtomValue(systemConfigAtom);
   const [version] = useAtom(GPUStackVersionAtom);
@@ -303,7 +307,13 @@ const useWorkerColumns = ({
 
   const setActions = (row: ListItem) => {
     return ActionList.filter((action) => {
-      if (action.key === 'download_ssh_key') {
+      // `ssh_key_id` marks a cloud-provisioned worker: the provisioning
+      // controller generates the keypair for every cloud provider, so this
+      // gates both DigitalOcean and Shuihua. The key exists from that moment,
+      // well before the instance has an address, and the dialog handles the
+      // gap — gating on a resolvable endpoint too would hide a key the user
+      // can already download.
+      if (action.key === 'view_ssh') {
         return !!row.ssh_key_id;
       }
       if (action.key === 'star_maintenance') {
@@ -365,7 +375,7 @@ const useWorkerColumns = ({
             {shouldUpgrade && (
               <span
                 style={{
-                  color: 'var(--ant-color-warning)'
+                  color: 'var(--color-status-warning-text)'
                 }}
               >
                 {intl.formatMessage({
@@ -406,19 +416,28 @@ const useWorkerColumns = ({
     );
   };
 
-  const pluginRendered = pluginCols.map((c) => ({
-    title: intl.formatMessage({ id: c.titleId }),
-    key: c.key,
-    ellipsis: { showTitle: false },
-    render: (_text: any, record: ListItem) => c.render(record)
-  }));
+  return useMemo<TableColumnProps[]>(() => {
+    // No column sets a `span`: SealTable gives every column `1fr`, so they
+    // divide the width evenly and the layout stays stable as plugins add or
+    // drop a column. What each column does carry is a `minWidth` floor — this
+    // table has ~11 columns and scrolls horizontally (`scroll={{ x: true }}`
+    // widens the row out to the sum of those floors), so the floors decide
+    // when scrolling starts and the even split only shares whatever width is
+    // left over beyond them.
+    const pluginRendered = pluginCols.map((c) => ({
+      title: intl.formatMessage({ id: c.titleId }),
+      dataIndex: c.key,
+      key: c.key,
+      // Honour a span only when the plugin explicitly asks for one.
+      minWidth: 120,
+      render: (_text: any, record: ListItem) => c.render(record)
+    }));
 
-  return useMemo<ColumnsType<ListItem>>(
-    () => [
+    const columns: TableColumnProps[] = [
       {
         title: intl.formatMessage({ id: 'common.table.name' }),
         dataIndex: 'name',
-        width: 140,
+        minWidth: 150,
         sorter: tableSorter(1),
         render: (text: string, record: ListItem) => (
           <div className={workerCss.name}>
@@ -432,13 +451,16 @@ const useWorkerColumns = ({
       {
         title: intl.formatMessage({ id: 'resources.table.labels' }),
         dataIndex: 'labels',
-        width: 200,
-        render: (_, record) => <LabelCell labels={record.labels} />
+        minWidth: 180,
+        render: (_text: any, record: ListItem) => (
+          <LabelCell labels={record.labels} />
+        )
       },
       ...pluginRendered,
       {
         title: intl.formatMessage({ id: 'clusters.title' }),
         dataIndex: 'cluster_id',
+        minWidth: 120,
         render: (id: number) => (
           <AutoTooltip ghost maxWidth={240}>
             {_.get(clusterData.data, id, '')}
@@ -448,8 +470,9 @@ const useWorkerColumns = ({
       {
         title: intl.formatMessage({ id: 'common.table.status' }),
         dataIndex: 'state',
+        minWidth: 130,
         sorter: tableSorter(2),
-        render: (_, record) => (
+        render: (_text: any, record: ListItem) => (
           <StatusTag
             maxTooltipWidth={400}
             suffix={record.provision_progress}
@@ -464,18 +487,22 @@ const useWorkerColumns = ({
       {
         title: 'IP',
         dataIndex: 'ip',
+        minWidth: 160,
         sorter: tableSorter(3),
-        render: (text: string, record) => (
+        render: (text: string, record: ListItem) => (
           <AutoTooltip ghost maxWidth={240}>
             {renderIP(text, record)}
           </AutoTooltip>
         )
       },
       {
+        // Kept as the backend's sort field: SealTable reports the sorted
+        // column by `dataIndex`, which becomes the `sort_by` param.
         title: 'CPU',
         dataIndex: 'status.cpu.utilization_rate',
+        minWidth: 110,
         sorter: tableSorter(4),
-        render: (text: string, record) => (
+        render: (_text: any, record: ListItem) => (
           <span className="flex-center flex-full">
             {statusAvailable(record) ? (
               <ProgressBar
@@ -490,8 +517,9 @@ const useWorkerColumns = ({
       {
         title: intl.formatMessage({ id: 'resources.table.memory' }),
         dataIndex: 'status.memory.utilization_rate',
+        minWidth: 110,
         sorter: tableSorter(5),
-        render: (_, record) => (
+        render: (_text: any, record: ListItem) => (
           <span className="flex-center flex-full">
             {statusAvailable(record) ? (
               <ProgressBar
@@ -516,7 +544,7 @@ const useWorkerColumns = ({
         title: 'GPU',
         dataIndex: 'gpu',
         minWidth: 100,
-        render: (_, record) =>
+        render: (_text: any, record: ListItem) =>
           statusAvailable(record) ? (
             <GPUCell devices={record?.status?.gpu_devices} />
           ) : (
@@ -527,11 +555,11 @@ const useWorkerColumns = ({
         title: intl.formatMessage({ id: 'resources.table.vram' }),
         dataIndex: 'vram',
         minWidth: 100,
-        render: (_, record, rIndex) =>
+        render: (_text: any, record: ListItem & { rowIndex?: number }) =>
           statusAvailable(record) ? (
             <VRAMCell
               devices={record?.status?.gpu_devices}
-              rIndex={rIndex}
+              rIndex={record.rowIndex ?? 0}
               loadend={loadend}
               firstLoad={firstLoad}
             />
@@ -543,7 +571,7 @@ const useWorkerColumns = ({
         title: intl.formatMessage({ id: 'resources.table.disk' }),
         dataIndex: 'storage',
         minWidth: 100,
-        render: (_, record) => (
+        render: (_text: any, record: ListItem) => (
           <span className="flex-center flex-full">
             {statusAvailable(record) ? (
               <StorageCell files={record.status?.filesystem} />
@@ -552,30 +580,48 @@ const useWorkerColumns = ({
             )}
           </span>
         )
-      },
+      }
+    ];
+
+    // SealTable has no `hidden` column flag (antd's `Table` does), so the
+    // cluster-detail view drops the operation column from the array.
+    if (source === 'clusterDetail') {
+      return columns;
+    }
+
+    return [
+      ...columns,
       {
         title: intl.formatMessage({ id: 'common.table.operation' }),
+        // Every column needs a unique `dataIndex`: SealTable keys each cell
+        // by it, and duplicate keys make React misplace cell DOM on
+        // reconciliation. The value itself is unused here.
+        dataIndex: 'operation',
         key: 'operation',
-        hidden: source === 'clusterDetail',
-        render: (_, record) => (
+        width: 110,
+        render: (_text: any, record: ListItem) => (
           <DropdownButtons
             items={setActions(record)}
             onSelect={(val) => handleSelect(val, record)}
           />
         )
       }
-    ],
-    [
-      intl,
-      sortOrder,
-      clusterData,
-      loadend,
-      source,
-      firstLoad,
-      handleSelect,
-      pluginRendered
-    ]
-  );
+    ];
+  }, [
+    intl,
+    sortOrder,
+    clusterData,
+    loadend,
+    source,
+    firstLoad,
+    handleSelect,
+    pluginCols,
+    // read by `setActions` (metrics entry) and `renderVersionInfo`; `pluginCols`
+    // now has a pinned identity, so the memo really holds and these have to be
+    // listed to keep the action list and version tooltip reactive
+    systemConfig?.showMonitoring,
+    version.version
+  ]);
 };
 
 export default useWorkerColumns;

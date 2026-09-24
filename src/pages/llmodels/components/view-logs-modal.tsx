@@ -1,6 +1,5 @@
-import useSetChunkRequest from '@/hooks/use-chunk-request';
 import { CloseOutlined, QuestionCircleOutlined } from '@ant-design/icons';
-import { BaseSelect, LogsViewer } from '@gpustack/core-ui';
+import { BaseSelect, LogsViewer, useChunkRequest } from '@gpustack/core-ui';
 import { useIntl } from '@umijs/max';
 import { Button, Checkbox, Flex, Modal, Tooltip } from 'antd';
 import dayjs from 'dayjs';
@@ -8,7 +7,9 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { MODELS_API } from '../apis';
 
 import { InstanceRealtimeLogStatus, InstanceStatusMap } from '../config';
-import useQueryModelInstanceRestartCount from '../services/use-query-instance-restart-count';
+import useQueryModelInstanceRestartCount, {
+  RestartOption
+} from '../services/use-query-instance-restart-count';
 
 type ViewModalProps = {
   open: boolean;
@@ -22,7 +23,7 @@ type ViewModalProps = {
 
 const ViewLogsModal: React.FC<ViewModalProps> = (props) => {
   const intl = useIntl();
-  const { setChunkRequest } = useSetChunkRequest();
+  const { setChunkRequest } = useChunkRequest();
   const { open, url, onCancel, tail, status } = props || {};
   const [enableScorllLoad, setEnableScorllLoad] = useState(true);
   const [isDownloading, setIsDownloading] = useState<boolean>(
@@ -109,14 +110,16 @@ const ViewLogsModal: React.FC<ViewModalProps> = (props) => {
     cancelRequest();
   };
 
-  const handleOnChange = (option: any) => {
+  const handleOnChange = (option?: RestartOption) => {
     if (!option) {
       setParams({
         follow: true
       });
     } else {
       setParams({
-        follow: true,
+        // A previous run gains no more lines, so there is nothing to follow:
+        // open it on its last page and let the page controls move it.
+        follow: !option.previous,
         watch: !option.previous,
         previous: option.previous,
         worker_id: option.worker_id,
@@ -188,7 +191,7 @@ const ViewLogsModal: React.FC<ViewModalProps> = (props) => {
   const renderTitle = () => {
     return (
       <span className="flex-between flex-center gap-16" style={{ height: 40 }}>
-        <span style={{ fontWeight: 'var(--font-weight-bold)' }}>
+        <span style={{ fontWeight: 'var(--font-weight-semibold)' }}>
           {intl.formatMessage({ id: 'common.button.viewlog' })}
         </span>
         <span className="flex-center gap-8" style={{ height: 32 }}>
@@ -273,7 +276,7 @@ const ViewLogsModal: React.FC<ViewModalProps> = (props) => {
       fetchData(props.id).then((list) => {
         const lastItem = list.find((item) => item.isMain);
         if (lastItem) {
-          handleOnChange(lastItem.children?.[0]);
+          handleOnChange(lastItem.children?.find((item) => !item.previous));
         }
       });
     } else {

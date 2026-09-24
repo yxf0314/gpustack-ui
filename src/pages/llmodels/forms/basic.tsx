@@ -14,10 +14,10 @@ import {
 import { useIntl } from '@umijs/max';
 import { Form } from 'antd';
 import { useEffect, useMemo } from 'react';
-import styled from 'styled-components';
 import { DeployFormKeyMap, sourceOptions } from '../config';
 import { useFormContext } from '../config/form-context';
-import { FormData } from '../config/types';
+import { ClusterOption, FormData } from '../config/types';
+import styles from '../style/cluster-option.module.less';
 import BackendForm from './backend';
 import CatalogFrom from './catalog';
 import CustomBackend from './custom-backend';
@@ -25,65 +25,10 @@ import LocalPathSource from './local-path-source';
 import ModeField from './mode-field';
 import OnlineSource from './online-source';
 
-const ClusterOption = styled.span`
-  display: flex;
-  padding: 8px 0;
-  width: 100%;
-  flex-direction: column;
-  border-bottom: 1px solid var(--ant-color-split);
-  gap: 4px;
-  .label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-  }
-  .dot {
-    display: flex;
-    width: 6px;
-    height: 6px;
-    background-color: var(--ant-color-warning);
-    border-radius: 50%;
-    &.ready {
-      background-color: var(--ant-color-success);
-    }
-  }
-  .item {
-    width: max-content;
-    display: flex;
-    align-items: center;
-    padding: 2px 0px;
-    border-radius: 4px;
-    font-weight: 400;
-    gap: 8px;
-  }
-  .s-dot {
-    width: 4px;
-    height: 4px;
-    margin: 0 4px;
-    background-color: var(--ant-color-text-quaternary);
-    border-radius: 50%;
-  }
-`;
-
 interface BasicFormProps {
   sourceDisable?: boolean;
   sourceList?: Global.BaseOption<string>[];
-  clusterList: Global.BaseOption<
-    number,
-    {
-      provider: string;
-      state: string;
-      is_default: boolean;
-      owner_principal_id?: number;
-      workers: number;
-      ready_workers: number;
-      gpus: number;
-    }
-  >[];
+  clusterList: ClusterOption[];
   handleClusterChange: (value: number) => void;
   onClusterSeed: (value: number) => void;
   onSourceChange?: (value: string) => void;
@@ -202,15 +147,15 @@ const BasicForm: React.FC<BasicFormProps> = (props) => {
     const { data } = option;
 
     return (
-      <ClusterOption>
-        <span className="label">
+      <span className={styles.clusterOption}>
+        <span className={styles.label}>
           <AutoTooltip ghost maxWidth={'100%'}>
             {data.label}
           </AutoTooltip>
         </span>
-        <span className={`item ${data.ready_workers > 0 ? 'ready' : ''}`}>
+        <span className={styles.meta}>
           <span
-            className={`dot ${data.ready_workers > 0 ? 'ready' : ''}`}
+            className={`${styles.dot} ${data.ready_workers > 0 ? styles.ready : ''}`}
           ></span>
           <span className="flex-center gap-8">
             <span className="flex-center gap-4 text-tertiary">
@@ -219,14 +164,14 @@ const BasicForm: React.FC<BasicFormProps> = (props) => {
                 {data.ready_workers}/{data.workers}
               </span>
             </span>
-            <span className="s-dot"></span>
+            <span className={styles.metaDivider}></span>
             <span className="flex-center gap-4 text-tertiary">
-              <span>GPUs:</span>
+              <span>{intl.formatMessage({ id: 'menu.resources.gpus' })}:</span>
               <span>{data.gpus}</span>
             </span>
           </span>
         </span>
-      </ClusterOption>
+      </span>
     );
   };
 
@@ -315,9 +260,11 @@ const BasicForm: React.FC<BasicFormProps> = (props) => {
       >
         <CInput.Number
           style={{ width: '100%' }}
-          label={intl.formatMessage({
-            id: 'models.form.replicas'
-          })}
+          // The Replicas field keeps its label/description unchanged even when
+          // scheduled scaling is on. While scheduling is on this value doubles
+          // as the baseline (idle) replica count — that's explained by a note in
+          // the Scheduled Scaling section rather than by relabeling this field.
+          label={intl.formatMessage({ id: 'models.form.replicas' })}
           required
           description={intl.formatMessage(
             { id: 'models.form.replicas.tips' },

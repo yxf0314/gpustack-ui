@@ -43,15 +43,85 @@ export interface ListItem {
   // The `(string & {})` tail keeps literal autocomplete for the
   // built-ins while still accepting plugin-defined values.
   access_policy: 'public' | 'authed' | 'allowed_users' | (string & {});
+  native_anthropic_api?: boolean;
   generic_proxy?: boolean;
   gpu_selector?: {
     gpu_ids: string[];
     gpus_per_replica?: number;
   };
+  gpu_type_selector?: GPUTypeSelector | null;
   worker_selector?: object;
 }
 
+// `POST /models/import`. The plan comes back the same shape either way: on a
+// dry run `items` is empty, otherwise it holds the rows as written.
+export type DeploymentAction = 'create' | 'update' | 'unchanged';
+
+export interface DeploymentChange {
+  // The document's own field name, e.g. `gpu_selector`. See
+  // `deployment-field-labels` for the wording.
+  field: string;
+  current?: any;
+  desired?: any;
+}
+
+export interface DeploymentPlanEntry {
+  index: number;
+  name?: string;
+  // Absent when the entry could not be parsed, leaving nothing to plan.
+  action?: DeploymentAction;
+  // The entry as the document describes it, which the preview row renders.
+  desired: Record<string, any>;
+  // The deployment this entry would replace, projected onto the same fields
+  // in the same order, so the two render as a YAML diff. Empty for a create.
+  current: Record<string, any>;
+  // The entry as the file spells it, sent only when it failed to validate —
+  // exactly when `desired` is empty. What the editor falls back to, so an
+  // invalid entry can still be fixed where it is.
+  raw: Record<string, any>;
+  changes: DeploymentChange[];
+  errors: string[];
+}
+
+export interface DeploymentImportResult {
+  dry_run: boolean;
+  // No entry has errors. What gates the confirm button.
+  valid: boolean;
+  entries: DeploymentPlanEntry[];
+  items: ListItem[];
+}
+
+// vGPU scheduling (issue #5192): deploy onto a GPU provided by a
+// gpustack-operator InstanceType. Mutually exclusive with `gpu_selector`.
+// Percentages 1-100 request a soft slice; both 0 request a whole card from
+// the type pool; `accelerator_partitioned_profile` requests a hardware
+// partition (e.g. MIG) and is mutually exclusive with the percentages.
+export interface GPUTypeSelector {
+  type?: string | null;
+  accelerator_sliced_memory_percentage?: number | null;
+  accelerator_sliced_cores_percentage?: number | null;
+  accelerator_partitioned_profile?: string | null;
+}
+
 export type DeployFormKey = 'deployment' | 'catalog';
+
+/**
+ * An entry of the deploy form's cluster dropdown. `provider` is what tells the
+ * form which GPU sources the target supports (ProviderValueMap).
+ */
+export type ClusterOption = Global.BaseOption<
+  number,
+  {
+    provider: string;
+    state: string;
+    is_default: boolean;
+    gpu_instance_enabled?: boolean;
+    owner_principal_id?: number;
+    workers: number;
+    ready_workers: number;
+    gpus: number;
+  }
+>;
 
 export type SourceType =
   | 'huggingface'
@@ -74,6 +144,7 @@ export interface FormData {
   run_command?: string;
   enable_model_route?: boolean;
   backend: string;
+  native_anthropic_api?: boolean;
   restart_on_error?: boolean;
   env?: Record<string, any>;
   size?: number;
@@ -98,10 +169,14 @@ export interface FormData {
     gpu_count?: number;
     gpus_per_replica?: number;
   };
+  gpu_type_selector?: GPUTypeSelector | null;
   placement_strategy?: string;
   cpu_offloading?: boolean;
   worker_selector?: object;
   scheduleType?: string;
+  // Which GPU source the manual mode picks from (ManualGPUModeMap): whole
+  // cards or an InstanceType pool. UI-only, stripped before submit.
+  manualGpuMode?: string;
   name: string;
   replicas: number;
   description: string;
@@ -110,6 +185,9 @@ export interface FormData {
   cluster_id: number;
   extended_kv_cache: {
     enabled: boolean;
+    // absent mode means 'local' (legacy deployments)
+    mode?: 'local' | 'shared';
+    cache_service_id?: number | null;
     chunk_size: number;
     ram_ratio: number;
     ram_size: number;
@@ -122,7 +200,21 @@ export interface FormData {
     ngram_min_match_length: number;
     ngram_max_match_length: number;
   };
+  scaling_schedule?: ScalingSchedule | null;
   max_context_len: number;
+}
+
+export interface ScalingScheduleRule {
+  start_cron: string;
+  duration_seconds?: number | null;
+  replicas: number;
+  name?: string;
+}
+
+export interface ScalingSchedule {
+  enabled: boolean;
+  baseline_replicas?: number | null;
+  rules: ScalingScheduleRule[];
 }
 
 interface ComputedResourceClaim {
@@ -135,13 +227,33 @@ interface ComputedResourceClaim {
 export interface DistributedServerItem {
   pid: number;
   port: number;
-  worker_id: string;
+  // Numeric on the wire (ModelInstanceSubordinateWorker.worker_id), so it
+  // matches a worker's `id` by identity in the worker-list lookup.
+  worker_id: number;
   computed_resource_claim: ComputedResourceClaim;
 }
 
 export interface DistributedServers {
   subordinate_workers: DistributedServerItem[];
 }
+// What the attached cache service did for one deployment's instances over
+// the requested window, from the inference engine's own external-cache
+// counters. available=false carries why no numbers can be read (the
+// deployment uses no cache service, observability is off, Prometheus is
+// unreachable); an engine that exports no counters keeps an empty row.
+export interface ModelCacheMetrics {
+  available: boolean;
+  reason?: string;
+  window?: number;
+  instances: {
+    model_instance_name?: string;
+    worker_name?: string;
+    hit_tokens?: number | null;
+    queried_tokens?: number | null;
+    hit_rate?: number | null;
+  }[];
+}
+
 export interface ModelInstanceListItem {
   backend?: string;
   cluster_id: number;
@@ -157,11 +269,27 @@ export interface ModelInstanceListItem {
   distributed_servers?: DistributedServers;
   computed_resource_claim?: ComputedResourceClaim;
   injected_backend_parameters?: string[];
+  // Present only for shared-KV-cache deployments; injected=false means the
+  // instance started without the shared cache and fell back to local mode.
+  // The hit rate is not part of the instance: it is read per deployment
+  // from ModelCacheMetrics and passed alongside.
+  cache_config?: {
+    injected: boolean;
+    reason?: string;
+    cache_service_name?: string;
+    cache_service_id?: number;
+    // present-tense view of the recorded endpoint: false when the cache
+    // the engine started with has since gone away or moved
+    endpoint_live?: boolean | null;
+  };
   s3_address: string;
   worker_id: number;
   gpu_indexes?: number[];
   worker_ip: string;
   gpu_index: number;
+  // Echoed from the parent Model when it was deployed via an InstanceType
+  // (vGPU); drives the slice/partition display on the instance row.
+  gpu_type_selector?: GPUTypeSelector | null;
   pid: number;
   port: number;
   name: string;
@@ -231,6 +359,10 @@ export interface CatalogItem {
   activated_size: number;
   licenses: string[];
   release_date: string;
+  // Which source materialized this entry. Absent / builtin / official all mean
+  // platform-owned content, which carries no badge.
+  source_name?: string;
+  source_type?: string;
 }
 
 export interface CatalogSpec {
@@ -258,6 +390,9 @@ export interface CatalogSpec {
   };
   extended_kv_cache: {
     enabled: boolean;
+    // absent mode means 'local' (legacy deployments)
+    mode?: 'local' | 'shared';
+    cache_service_id?: number | null;
     chunk_size: number;
     max_local_cpu_size: number;
     remote_url: string;
@@ -371,6 +506,10 @@ export interface BackendOption {
   enabled: boolean;
   common_parameters?: string[];
   parameter_format?: 'space' | 'equal' | null;
+  // Which managed source produced the entry — null for the packaged content and
+  // for anything a user added by hand, neither of which carries a badge.
+  source_name?: string;
+  source_type?: string;
   versions: {
     label: string;
     value: string;
@@ -412,6 +551,8 @@ export interface BackendItem {
   enabled: boolean;
   common_parameters?: string[];
   parameter_format?: 'space' | 'equal' | null;
+  source_name?: string;
+  source_type?: string;
   versions: {
     version: string;
     env?: Record<string, any>;

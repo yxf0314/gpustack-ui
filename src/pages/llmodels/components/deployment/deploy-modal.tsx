@@ -1,8 +1,12 @@
 import { getRequestId } from '@/atoms/models';
 import { PageActionType } from '@/config/types';
-import useDeferredRequest from '@/hooks/use-deferred-request';
 import { ClusterStatusValueMap } from '@/pages/cluster-management/config';
-import { ColumnWrapper, GSDrawer, ModalFooter } from '@gpustack/core-ui';
+import {
+  ColumnWrapper,
+  GSDrawer,
+  ModalFooter,
+  useDeferredRequest
+} from '@gpustack/core-ui';
 import { useIntl } from '@umijs/max';
 import { useMemoizedFn } from 'ahooks';
 import { Button } from 'antd';
@@ -15,7 +19,7 @@ import {
   mergeBackendParameters,
   modelSourceMap
 } from '../../config';
-import { FormData, SourceType } from '../../config/types';
+import { ClusterOption, FormData, SourceType } from '../../config/types';
 import { backendOptionsMap } from '../../constants/backend-parameters';
 import DataForm from '../../forms';
 import {
@@ -76,15 +80,7 @@ type AddModalProps = {
   width?: string | number;
   initialValues?: any;
   deploymentType?: 'modelList' | 'modelFiles';
-  clusterList: Global.BaseOption<
-    number,
-    {
-      provider: string;
-      state: string | number;
-      is_default: boolean;
-      owner_principal_id?: number;
-    }
-  >[];
+  clusterList: ClusterOption[];
   onOk: (values: FormData) => void;
   onCancel: () => void;
 };

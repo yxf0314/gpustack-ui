@@ -219,6 +219,15 @@ export const ScheduleValueMap = {
   SpecificGPUType: 'specific_gpu_type'
 };
 
+// Manual scheduling picks the GPUs one of two ways, chosen by a tab: whole
+// cards out of the cluster's inventory (gpu_selector), or a whole / sliced /
+// partitioned GPU out of an InstanceType pool (gpu_type_selector, "vGPU").
+// UI-only field — the payload it maps to is one selector or the other.
+export const ManualGPUModeMap = {
+  FullGPU: 'full_gpu',
+  VGPU: 'vgpu'
+};
+
 export const scheduleList = [
   {
     label: 'models.form.scheduletype.auto',
@@ -396,20 +405,34 @@ export const DO_NOT_TRIGGER_CHECK_COMPATIBILITY = [
   'backend_version',
   'ollama_library_model_name',
   'scheduleType',
+  'manualGpuMode',
   'placement_strategy',
   'backend',
   'gpu_selector.gpu_ids',
   'run_command',
   'image_name',
   'extended_kv_cache.enabled',
+  'extended_kv_cache.mode',
+  'extended_kv_cache.cache_service_id',
   'extended_kv_cache.ram_size',
   'speculative_config.enabled',
   'speculative_config.draft_model',
-  'max_context_len'
+  'max_context_len',
+  'native_anthropic_api'
 ];
 
 // ignore to compare old and new data when these fields change in updating model
-export const DO_NOT_NOTIFY_RECREATE = ['categories', 'replicas', 'description'];
+// `native_anthropic_api` only reconfigures the gateway's ai-proxy provider, so
+// the running instances stay as they are.
+// `scaling_schedule` is applied live too — the scheduler just drives the
+// replica count from the new windows, exactly like a plain `replicas` edit.
+export const DO_NOT_NOTIFY_RECREATE = [
+  'categories',
+  'replicas',
+  'description',
+  'native_anthropic_api',
+  'scaling_schedule'
+];
 
 export const defaultFormValues = {
   replicas: 1,
@@ -417,12 +440,14 @@ export const defaultFormValues = {
   categories: null,
   env: {},
   scheduleType: ScheduleValueMap.Auto,
+  manualGpuMode: ManualGPUModeMap.FullGPU,
   placement_strategy: 'spread',
   gpu_ids: null,
   gpu_selector: {},
   worker_selector: {},
   backend_parameters: [],
-  backend_version: null
+  backend_version: null,
+  native_anthropic_api: false
 };
 
 export const getBackendParamsTips = (backend: string) => {
@@ -490,3 +515,46 @@ export enum DeployFormKeyMap {
   DEPLOYMENT = 'deployment',
   CATALOG = 'catalog'
 }
+
+// Schema hint seeded into the catalog source editor. Mirrors the packaged
+// model-catalog.yaml: a mapping with model_sets (and optionally draft_models),
+// each model set carrying at least one spec. Comments only, so it cannot be
+// saved unedited.
+export const catalogSourceTemplate = `# A YAML mapping with model_sets (and optionally draft_models).
+#
+# Example:
+#
+# model_sets:
+#   - name: Qwen3-0.6B
+#     description: Dense causal language model with a 128K context.
+#     home: https://qwenlm.github.io
+#     # icon must be an absolute URL, a '/'-rooted path, or a raster data: URI
+#     icon: https://example.com/icons/qwen.png
+#     size: 0.6
+#     categories:
+#       - llm
+#     capabilities:
+#       - context/128K
+#       - tools
+#     licenses:
+#       - apache-2.0
+#     release_date: "2025-04-19"
+#     specs:
+#       - mode: standard
+#         quantization: BF16
+#         source: huggingface
+#         huggingface_repo_id: Qwen/Qwen3-0.6B
+#         backend: vLLM
+#         backend_parameters:
+#           - --max-model-len=8192
+# draft_models: []
+`;
+
+// The window every KV cache hit rate is read over: the value the metrics
+// API is asked for, and the localized label that names it in the tooltip.
+// A rate without its window says nothing, and a label that drifts from
+// the query says something false — so the two travel together.
+export const CACHE_METRICS_WINDOW = {
+  value: '1h',
+  labelKey: 'models.kvCache.hitRate.window'
+} as const;

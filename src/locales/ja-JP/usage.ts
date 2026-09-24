@@ -31,6 +31,24 @@ export default {
   'usage.tabs.users': 'User',
   'usage.export.chart': 'Export Chart Data',
   'usage.export.table': 'Export Table Data',
+  'usage.export.rows': 'About {total} rows will be exported.',
+  'usage.export.rowsSlow':
+    'About {total} rows will be exported. This may take a while — please keep this page open.',
+  'usage.export.rowsExceeded':
+    'About {total} rows, over the {limit}-row limit for a single export. Shorten the date range to {days} days or fewer, or add filters.',
+  'usage.export.error.tooLarge':
+    'This query returns about {total} rows, over the {limit}-row limit for a single export. Shorten the date range to {days} days or fewer, or add filters.',
+  'usage.export.splitAsCsv':
+    'The result is too large for one file, so it will be delivered as {parts} CSV files in a zip.',
+  'usage.export.csvFallback':
+    "The result exceeds Excel's {limit}-row limit per sheet, so it will be exported as CSV instead of xlsx.",
+  'usage.export.error.splitTooManyParts':
+    'Splitting would produce {total} files, over the {limit} limit. Narrow the date range or export fewer tables at once.',
+  'usage.export.estimateFailed':
+    'Could not size this export, so the preview has no columns to show. The download still works; the server enforces the limits either way.',
+  'usage.export.error.failed': 'Export failed.',
+  'usage.export.suggest.shortenRange': 'Shorten to {days} days',
+  'usage.export.suggest.split': 'Export in {parts} CSV files',
   'usage.user.currentAccount': 'Current Account',
   'usage.table.cluster': 'Cluster',
   'usage.table.provider': 'Provider',
@@ -45,7 +63,8 @@ export default {
   'usage.metric.input': '入力',
   'usage.metric.output': '出力',
   'usage.metric.gpuHours': 'GPU 時間',
-  'usage.metric.instanceHours': 'インスタンス時間',
+  'usage.metric.runningTime': '稼働時間',
+  'usage.metric.usage': '使用量',
   'usage.metric.gbDays': 'GB·日',
   'usage.metric.gbHours': 'GB·時間',
   'usage.metric.activeUsers': 'アクティブユーザー',
@@ -55,8 +74,10 @@ export default {
   'usage.metric.storageTypes': 'ストレージタイプ',
   'usage.metric.gpuHours.tip':
     'インスタンスの稼働時間を GPU 数で重み付けした値：N 個の GPU を使用するインスタンスが H 時間稼働すると N × H GPU 時間としてカウントされます。すべてのインスタンスが単一の GPU を使用する場合はインスタンス時間と等しくなります。',
-  'usage.metric.instanceHours.tip':
-    'GPU の数に関係なく、すべてのインスタンスの稼働時間を合計した値。1 つのインスタンスが 2 時間稼働 = 2 インスタンス時間。',
+  'usage.metric.runningTime.tip':
+    'インスタンスが実際に稼働した時間。保持していたユニット数とは無関係で、2 時間稼働すれば 1 枚でも 8 枚でも 2 h です。使用量はこれをユニット数で重み付けした値です。',
+  'usage.metric.usage.tip':
+    'インスタンスが保持していた課金ユニット数で稼働時間を重み付けした値：アクセラレーテッドインスタンスは GPU 枚数、CPU インスタンスは基本フレーバー単位数。セルには数値の下に内訳を表示し、期間中に構成変更されたインスタンスは規格ごとに行を分けます。',
   'usage.metric.gbDays.tip':
     'ストレージ容量を時間で積分した値（GB × 日）：10 GB を 5 日間保持 = 50 GB·日。（= GB·時間 ÷ 24）',
   'usage.metric.gbHours.tip':
@@ -71,6 +92,9 @@ export default {
   'usage.table.users': 'ユーザー',
   'usage.table.type': 'タイプ',
   'usage.table.instance': 'インスタンス',
+  'usage.table.resized': '構成変更あり',
+  'usage.table.currentShape': '現在',
+  'usage.table.shapeAndMore': '{shape} ほか {count} 件',
   'usage.table.instanceType': 'インスタンスタイプ',
   'usage.table.instanceTypes': 'インスタンスタイプ',
   'usage.table.instances': 'インスタンス',
@@ -80,7 +104,7 @@ export default {
   // --- Summary tab ---
   'usage.summary.compute': 'コンピュート',
   'usage.summary.tokensOverTime': 'トークン数の推移',
-  'usage.summary.gpuHoursOverTime': 'GPU 時間の推移',
+  'usage.summary.usageOverTime': '使用量の推移',
   'usage.summary.gbDaysOverTime': 'GB·日の推移',
 
   // --- GPU Instances / Storage filters ---

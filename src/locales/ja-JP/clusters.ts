@@ -13,6 +13,8 @@ export default {
   'clusters.button.addNodePool': 'Add Worker Pool',
   'clusters.button.add.credential': 'Add {provider} Credential',
   'clusters.credential.title': 'Cloud Credential',
+  'clusters.credential.signinToCreate':
+    'No {name} yet? <a href="{link}" target="_blank">Sign in or sign up</a> to create one.',
   'clusters.credential.token': 'Access Token',
   'clusters.workerpool.region': 'Region',
   'clusters.workerpool.zone': 'Zone',
@@ -72,8 +74,13 @@ export default {
     'For <span class="bold-text">non-Docker</span> clusters, please register clusters or manage worker pools from the Clusters page.',
   'clusters.addworker.selectGPU': 'Select GPU Vendor',
   'clusters.addworker.selectGPU.multiTag': 'Multi-select',
-  'clusters.addworker.selectGPU.subtitle':
-    '複数の GPU ベンダーを選択するか、CPU クラスター専用の場合は選択不要です',
+  'clusters.addworker.selectHardware': 'ハードウェアタイプを選択',
+  'clusters.addworker.selectHardware.subtitle':
+    'このクラスターでワーカーを実行するハードウェアタイプをすべて選択してください',
+  'clusters.addworker.cpuNode.tips':
+    'GPU を持たないすべてのノードにワーカーをデプロイします。コントロールプレーンが GPU ノードと同じクラスターにあり、CPU ノードでワーカーを実行したくない場合は選択しないでください。',
+  'clusters.addworker.noWorkerSelected.error':
+    'ハードウェアタイプを少なくとも 1 つ選択してください。CPU Node と GPU ベンダーのどちらも選択しない場合、ワーカーが 1 つもデプロイされません。',
   'clusters.addworker.checkEnv': 'Check Environment',
   'clusters.addworker.checkEnv.cpuOnlyTips':
     '以下のコマンドを使用して、Kubernetes クラスターに少なくとも 1 つのレディーノードがあることを確認してください。CPU クラスターを登録しています。',
@@ -108,17 +115,30 @@ export default {
   'clusters.addworker.cacheVolume.holder':
     'e.g. /data/cache (path must start with /)',
   'clusters.addworker.vendorNotes.title': 'Notes for {vendor} Device',
-  'clusters.button.genToken':
-    'Need to create a new token? Click <a href="{link}" target="_blank">here</a>.',
   'clusters.addworker.amdNotes-01': `If the <span class="bold-text">/opt/rocm</span> directory does not exist, please create a symbolic link pointing to the ROCm installed path: <span class="bold-text">ln -s /path/to/rocm /opt/rocm</span>.`,
+  'clusters.addworker.amdNotes-02': `ホスト上で複数の ROCm バージョンを管理している場合、検出の失敗を避けるために <span class="bold-text">/opt/rocm/lib</span> をマウントする必要があります。`,
   'clusters.addworker.message.success_single':
     '{count} new worker has been added to the cluster.',
   'clusters.addworker.message.success_multiple':
     '{count} new workers have been added to the cluster.',
   'clusters.create.serverUrl': 'GPUStack Server URL',
   'clusters.create.workerConfig': 'Worker Configuration',
-  'clusters.edit.k8sOptions.changed.tip':
-    'Kubernetes オプションを変更しました。変更を有効にするには、対象クラスターで登録コマンドを再実行してください。',
+  'clusters.chartValues.title': 'Chart Values (YAML)',
+  'clusters.chartValues.tip':
+    'GPUStack Helm chart の values です。キーは chart 自身のキーそのままで、サーバーが導出した値の上にマージされます。上に専用の項目がなく chart やそのサブ chart が提供する機能は、ここで設定できます（例：クラスターが既に備えているコンポーネントを無効化する）。Helm と同様、リストは追加ではなく置き換えになります。',
+  'clusters.chartValues.reapply.tip':
+    'クラスターを保存しても Kubernetes 側は何も変わりません。変更後は「クラスターを登録」をやり直して manifest を取得し、再度適用してください。クラスター内の Job が manifest の要求と release の実際の構成を比較し、差分があるときだけアップグレードします。',
+  'clusters.chartValues.doc.chart': 'Chart values',
+  'clusters.chartValues.doc.operator': 'Operator chart',
+  'clusters.chartValues.error.invalidYaml': 'YAML の形式が不正です: {reason}',
+  'clusters.chartValues.error.notJson':
+    '{path} の値が文字列・数値・真偽値・リスト・マッピングのいずれでもありません。YAML が日付またはバイナリ値として解釈しており、そのままでは渡せません。引用符で囲むとテキストとして保持されます。',
+  'clusters.chartValues.error.unsafeInteger':
+    '{path} の整数は正確に扱える範囲を超えています。YAML の解析時点で丸められているため、別の値が送信されます。引用符で囲むと桁がそのまま保たれます。',
+  'clusters.chartValues.error.notMapping':
+    'Chart values は YAML のキーマッピングである必要があります。単一の値やリストは指定できません。',
+  'clusters.edit.registration.changed.tip':
+    'ワーカーの登録時に適用される設定を変更しました。変更を有効にするには、対象クラスターで登録コマンドを再実行してください。',
   'clusters.addworker.containerName': 'Worker Container Name',
   'clusters.addworker.containerName.tips':
     'Specify a name for the worker container.',
@@ -128,7 +148,7 @@ export default {
   'clusters.table.ip.internal': 'Internal',
   'clusters.table.ip.external': 'External',
   'clusters.form.serverUrl.tips':
-    'Specify an externally accessible GPUStack service URL if the worker cannot access GPUStack Server directly.',
+    'Specify an externally accessible GPUStack service URL if the worker cannot access GPUStack Server directly. For example: {example}',
   'clusters.form.setDefault': 'Set as Default',
   'clusters.form.setDefault.tips': 'Default for deployment.',
   'clusters.addworker.noClusters': 'No available Docker clusters found',
@@ -174,6 +194,8 @@ export default {
   'clusters.systemDefaultContainerRegistry.title': 'Default Container Registry',
   'clusters.systemDefaultContainerRegistry.tip':
     'Default registry used to resolve GPUStack images for this cluster. Falls back to the server default when unset.',
+  'clusters.systemDefaultContainerRegistry.dockerHubUnreachable':
+    '{provider} instances cannot reach Docker Hub. Use a mirror or a private registry.',
   'clusters.k8sOptions.title': 'Kubernetes Deployment Options',
   'clusters.imageCredentials.title': 'Image Credentials',
   'clusters.imageCredentials.add': 'Add Credential',
@@ -198,7 +220,17 @@ export default {
     'For on-demand GPU compute — e.g. interactive development, training jobs, or custom environments.',
   'clusters.gpuInstances.staticAddress': 'GPU Service Static Access Address',
   'clusters.gpuInstances.staticAddress.tip':
-    'Static address the operator uses to access GPU instances in this cluster (e.g. a LoadBalancer VIP). Optional.'
+    'Static address the operator uses to access GPU instances in this cluster (e.g. a LoadBalancer VIP). Operator default: empty — the access address is generated from host IPs. Changing it does not re-address GPU instances that are already deployed; it applies to newly created ones.',
+  'clusters.gpuInstances.derivedFromNode': 'Derive Instance Types from Nodes',
+  'clusters.gpuInstances.derivedFromNode.tip':
+    'Whether the operator auto-derives instance types (and their backing queues) from node hardware. Enabled: the operator authors a derived instance type for each node flavor. Disabled: it only aligns the resource flavor, and you define every instance type yourself. Operator default: Enabled.',
+  'clusters.gpuInstances.mixedOnNode': 'Allow Mixed Instance Types on a Node',
+  'clusters.gpuInstances.mixedOnNode.tip':
+    'Whether one node may serve both an accelerated and a CPU-only instance type. Enabled: a node is summarized into every type it can serve. Disabled: a node with accelerators yields only an accelerated type, and a CPU-only node only a general one. Operator default: Enabled.',
+  'clusters.gpuInstances.setting.enabled': 'Enabled',
+  'clusters.gpuInstances.setting.disabled': 'Disabled',
+  'clusters.gpuInstances.setting.unmanaged':
+    'Unmanaged (the cluster keeps its own value)'
 };
 
 // ========== To-Do: Translate Keys (Remove After Translation) ==========

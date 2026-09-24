@@ -3,6 +3,10 @@ export default {
   'gpuservice.template.add': 'Örnek Şablonu Ekle',
   'gpuservice.template.edit': 'Örnek Şablonunu Düzenle',
   'gpuservice.template.clone': 'Örnek Şablonunu Klonla',
+  'gpuservice.template.editYaml': 'YAML Düzenle',
+  'gpuservice.template.editYaml.title': 'Şablon YAML Düzenle',
+  'gpuservice.template.editYaml.invalidSpec':
+    'Geçersiz YAML: üst düzey bir "spec" nesnesi gerekli.',
   'gpuservice.template.filter.name': 'Ada göre filtrele',
   'gpuservice.template.filter.vendor': 'Tedarikçiye göre filtrele',
   'gpuservice.template.image': 'İmaj',
@@ -73,8 +77,8 @@ export default {
     'Bu kova içinde organizasyon ve depolama adlarına dayalı bir önek dizini otomatik olarak oluşturulur.',
   'gpuservice.storageType.s3.bucket.tips2':
     'Örneğin, organizasyon adı <span class="desc-block">awesome-group</span> ve depolama adı <span class="desc-block">storage-1</span> ise, oluşacak önek: <span class="desc-block">awesome-group/storage-1</span>.',
-  'gpuservice.storageType.s3.accessKey': 'Access Key',
-  'gpuservice.storageType.s3.secretKey': 'Secret Key',
+  'gpuservice.storageType.s3.accessKey': 'Erişim Anahtarı',
+  'gpuservice.storageType.s3.secretKey': 'Gizli Anahtar',
   'gpuservice.storageType.s3.insecure': 'TLS/SSL sertifika doğrulamasını atla',
   'gpuservice.storageType.s3.insecure.tips':
     'Etkinleştirildiğinde S3 sunucu sertifikası doğrulanmaz. İç ağ testleri veya kendinden imzalı sertifikalar için uygundur; üretim ortamında dikkatli kullanın.',
@@ -113,12 +117,58 @@ export default {
   'gpuservice.instance.gpuCount.noAvailable':
     'Kullanılabilir GPU kaynağı yok, lütfen başka bir örnek türü seçin.',
   'gpuservice.instance.gpuCount.zero': 'Yalnızca CPU, ortam hazırlığı için.',
+  'gpuservice.instance.mode.whole': 'Tam GPU',
+  'gpuservice.instance.mode.sliced': 'Orana Göre',
+  'gpuservice.instance.mode.partitioned': 'Profile Göre',
+  'gpuservice.instance.slice.memoryPercentage': 'VRAM Yüzdesi (%)',
+  'gpuservice.instance.slice.percentage': 'Yüzde (%)',
+  'gpuservice.instance.slice.coresPercentage': 'İşlem Gücü Yüzdesi (%)',
+  'gpuservice.instance.slice.cores.min':
+    'İşlem gücü oranı VRAM oranından ({count}%) küçük olamaz',
+  'gpuservice.instance.slice.fullCores': '%100 İşlem Gücü',
+  'gpuservice.instance.slice.percentage.required':
+    'Lütfen bir yüzde seçin veya girin',
+  'gpuservice.instance.slice.percentage.max':
+    'Oran %1 ile %{count} arasında olmalıdır',
   'gpuservice.instance.stock': 'Stok',
   'gpuservice.instance.sliced': 'Bölünmüş',
+  'gpuservice.instance.sliceable': 'Bölünebilir',
+  'gpuservice.instance.partitioned': 'Bölüm',
+  'gpuservice.instance.partition.profile': 'Bölüm Profili',
+  'gpuservice.instance.partition.profile.required':
+    'Lütfen bir bölüm profili seçin',
+  'gpuservice.instance.partition.profile.unavailable':
+    'Bu profil havuzda kalmadı, lütfen başka birini seçin',
   'gpuservice.instance.memory': 'VRAM',
   'gpuservice.instance.ram': 'RAM',
   'gpuservice.instance.os': 'OS',
   'gpuservice.instance.arch': 'Mimari',
+  'gpuservice.instance.utilization.gpu': 'GPU',
+  'gpuservice.instance.utilization.vram': 'VRAM',
+  'gpuservice.instance.utilization.cpu': 'CPU',
+  'gpuservice.instance.utilization.memory': 'Bellek',
+  'gpuservice.instance.utilization.storage': 'Depolama',
+  'gpuservice.instanceType': 'GPU Örnek Türü',
+  'gpuservice.instanceType.add': 'Örnek Türü Ekle',
+  'gpuservice.instanceType.flavor': 'Flavor',
+  'gpuservice.instanceType.flavor.required':
+    'Lütfen bir örnek türü çeşidi seçin',
+  'gpuservice.instanceType.flavor.gpuGroup': 'GPU İşlem',
+  'gpuservice.instanceType.flavor.cpuGroup': 'CPU İşlem',
+  'gpuservice.instanceType.activate': 'Etkinleştir',
+  'gpuservice.instanceType.deactivate': 'Devre dışı bırak',
+  'gpuservice.instanceType.platform': 'Platform',
+  'gpuservice.instanceType.product': 'Product',
+  'gpuservice.instanceType.unitCpu': 'Birim CPU',
+  'gpuservice.instanceType.unitCpu.tip': 'GPU başına ayrılan CPU',
+  'gpuservice.instanceType.unitRam': 'Birim RAM',
+  'gpuservice.instanceType.unitRam.tip': 'GPU başına ayrılan RAM',
+  'gpuservice.instanceType.localStorage': 'Depolama',
+  'gpuservice.instanceType.localStorage.tip': 'Kullanılabilir maksimum disk',
+  'gpuservice.instanceType.notSliceable': 'Dilimlenemez',
+  'gpuservice.instanceType.filter.name': 'Ada göre ara',
+  'gpuservice.instanceType.clusterUnavailable':
+    'Küme yanıt vermedi; büyük olasılıkla hazır bir işçi düğümü yok. Kümeyi kontrol edip yeniden deneyin.',
   'gpuservice.instance.disk': 'Disk',
   'gpuservice.table.count': 'Sayı',
   'gpuservice.instance.disk.system': 'Sistem Diski',
@@ -140,11 +190,8 @@ export default {
     'Yalnızca son bir saatteki olaylar gösterilir',
   'gpuservice.instance.event.tab.instance': 'Örnek Olayları',
   'gpuservice.instance.event.tab.volume': 'Birim Olayları',
-  'gpuservice.instance.recreate.confirm.title':
-    'Yeniden oluşturma onaylansın mı',
-  'gpuservice.instance.recreate.confirm.content':
-    'Mevcut örnek önce silinecek, ardından mevcut yapılandırmayla yeniden oluşturulacaktır.\n <span style="font-size: 13px;font-weight: 700">{name}</span>',
   'gpuservice.storage': 'Depolama',
+  'gpuservice.storage.attachedInstances': 'Bağlı Örnekler',
   'gpuservice.storage.add': 'Depolama Ekle',
   'gpuservice.storage.edit': 'Depolamayı Düzenle',
   'gpuservice.storage.filter.cluster': 'Kümeye göre filtrele',
@@ -168,10 +215,9 @@ export default {
     'Lütfen geçici depolama kapasitesini girin',
   'gpuservice.form.rule.name':
     "Küçük harfler, rakamlar ve '-'. Harf veya rakamla başlamalı ve bitmeli, ardışık '-' içermemeli, en fazla 63 karakter.",
-  'gpuservice.storage.temporary.tips':
-    'Data is cleared when the instance stops.',
+  'gpuservice.storage.temporary.tips': 'Örnek durdurulduğunda veriler silinir.',
   'gpuservice.storage.persistentVolume.tips':
-    'Data persists across instance restarts. Persistent volumes remain intact after instance termination and can be shared by multiple instances.',
+    'Veriler örnek yeniden başlatmaları boyunca korunur. Kalıcı birimler örnek sonlandırıldıktan sonra da bozulmadan kalır ve birden fazla örnek tarafından paylaşılabilir.',
   'gpuservice.form.storage.select': 'Depolamayı Seç',
   'gpuservice.creator': 'Oluşturan',
   'gpuservice.owner.global': 'Genel',

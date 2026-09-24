@@ -13,6 +13,8 @@ export default {
   'clusters.button.addNodePool': 'Добавить пул воркеров',
   'clusters.button.add.credential': 'Добавить аккаунт {provider}',
   'clusters.credential.title': 'Учетные данные',
+  'clusters.credential.signinToCreate':
+    '{name}: <a href="{link}" target="_blank">войдите или зарегистрируйтесь</a>, чтобы создать.',
   'clusters.credential.token': 'Токен доступа',
   'clusters.workerpool.region': 'Регион',
   'clusters.workerpool.zone': 'Зона',
@@ -72,8 +74,13 @@ export default {
     'Для <span class="bold-text">не-Docker</span> кластеров, пожалуйста, регистрируйте кластеры или управляйте пулами воркеров на странице Кластеры.',
   'clusters.addworker.selectGPU': 'Выбрать производителя GPU',
   'clusters.addworker.selectGPU.multiTag': 'Multi-select',
-  'clusters.addworker.selectGPU.subtitle':
-    'Вы можете выбрать несколько производителей GPU или не выбирать для кластера только с CPU',
+  'clusters.addworker.selectHardware': 'Выбрать тип оборудования',
+  'clusters.addworker.selectHardware.subtitle':
+    'Выберите все типы оборудования, на которых этот кластер должен запускать worker’ы',
+  'clusters.addworker.cpuNode.tips':
+    'Разворачивает worker на всех узлах без GPU. Не выбирайте, если ваша control plane находится в том же кластере, что и узлы с GPU, и вы не хотите запускать worker на узлах с CPU.',
+  'clusters.addworker.noWorkerSelected.error':
+    'Выберите хотя бы один тип оборудования — если не выбраны ни CPU Node, ни производитель GPU, не будет развёрнут ни один worker.',
   'clusters.addworker.checkEnv': 'Проверить окружение',
   'clusters.addworker.checkEnv.cpuOnlyTips':
     'Используйте следующую команду, чтобы убедиться, что в кластере Kubernetes есть хотя бы один готовый узел. Вы регистрируете кластер только с CPU.',
@@ -108,17 +115,30 @@ export default {
   'clusters.addworker.cacheVolume.holder':
     'e.g. /data/cache (path must start with /)',
   'clusters.addworker.vendorNotes.title': 'Примечания для устройств {vendor}',
-  'clusters.button.genToken':
-    'Нужен новый токен? Нажмите <a href="{link}" target="_blank">здесь</a>.',
   'clusters.addworker.amdNotes-01': `Если директория <span class="bold-text">/opt/rocm</span> не существует, создайте символическую ссылку на путь установки ROCm: <span class="bold-text">ln -s /путь/к/rocm /opt/rocm</span>.`,
+  'clusters.addworker.amdNotes-02': `Если на хосте управляется несколько версий ROCm, необходимо смонтировать <span class="bold-text">/opt/rocm/lib</span>, чтобы избежать сбоев обнаружения устройств.`,
   'clusters.addworker.message.success_single':
     '{count} новый воркер был добавлен в кластер.',
   'clusters.addworker.message.success_multiple':
     '{count} новых воркеров были добавлены в кластер.',
-  'clusters.create.serverUrl': 'URL сервера GPUStack',
+  'clusters.create.serverUrl': 'GPUStack Server URL',
   'clusters.create.workerConfig': 'Конфигурация воркера',
-  'clusters.edit.k8sOptions.changed.tip':
-    'Вы изменили параметры Kubernetes. Чтобы изменения вступили в силу, повторно выполните команду регистрации в целевом кластере.',
+  'clusters.chartValues.title': 'Chart Values (YAML)',
+  'clusters.chartValues.tip':
+    'Values для Helm chart GPUStack: ключи те же, что и в самом chart, значения накладываются поверх выведенных сервером. Здесь доступно всё, что предоставляют chart и его subcharts и для чего нет поля выше — например отключение компонента, который уже есть в кластере. Как и в Helm, списки заменяются целиком, а не дополняются.',
+  'clusters.chartValues.reapply.tip':
+    'Сохранение кластера ничего не меняет в Kubernetes. После изменений заново выполните «Зарегистрировать кластер», получите manifest и примените его снова — Job внутри кластера сравнивает требуемую manifest конфигурацию с фактически установленной и обновляет release только при различии.',
+  'clusters.chartValues.doc.chart': 'Chart values',
+  'clusters.chartValues.doc.operator': 'Operator chart',
+  'clusters.chartValues.error.invalidYaml': 'Некорректный YAML: {reason}',
+  'clusters.chartValues.error.notJson':
+    'Значение в {path} не является строкой, числом, логическим значением, списком или отображением — YAML прочитал его как дату или двоичное значение, которое нельзя передать без изменений. Возьмите его в кавычки, чтобы оставить текстом.',
+  'clusters.chartValues.error.unsafeInteger':
+    'Целое число в {path} больше, чем можно передать точно — оно уже округлилось при разборе YAML, поэтому было бы отправлено другое значение. Возьмите его в кавычки, чтобы сохранить цифры.',
+  'clusters.chartValues.error.notMapping':
+    'Chart values должны быть YAML-отображением ключей, а не отдельным значением или списком.',
+  'clusters.edit.registration.changed.tip':
+    'Вы изменили параметры, которые применяются при регистрации воркера. Чтобы изменения вступили в силу, повторно выполните команду регистрации в целевом кластере.',
   'clusters.addworker.containerName': 'Имя контейнера воркера',
   'clusters.addworker.containerName.tips':
     'Укажите имя для контейнера воркера.',
@@ -128,7 +148,7 @@ export default {
   'clusters.table.ip.internal': 'Внутренний',
   'clusters.table.ip.external': 'Внешний',
   'clusters.form.serverUrl.tips':
-    'Если рабочий узел не может напрямую получить доступ к GPUStack Server, укажите внешний URL службы GPUStack Server.',
+    'Если рабочий узел не может напрямую получить доступ к GPUStack Server, укажите внешний URL службы GPUStack Server. Например: {example}',
   'clusters.form.setDefault': 'Установить по умолчанию',
   'clusters.form.setDefault.tips':
     'Использовать по умолчанию для развертывания.',
@@ -175,6 +195,8 @@ export default {
   'clusters.systemDefaultContainerRegistry.title': 'Default Container Registry',
   'clusters.systemDefaultContainerRegistry.tip':
     'Default registry used to resolve GPUStack images for this cluster. Falls back to the server default when unset.',
+  'clusters.systemDefaultContainerRegistry.dockerHubUnreachable':
+    'Экземпляры {provider} не имеют доступа к Docker Hub. Используйте зеркало или приватный реестр.',
   'clusters.k8sOptions.title': 'Kubernetes Deployment Options',
   'clusters.imageCredentials.title': 'Image Credentials',
   'clusters.imageCredentials.add': 'Add Credential',
@@ -199,7 +221,17 @@ export default {
     'For on-demand GPU compute — e.g. interactive development, training jobs, or custom environments.',
   'clusters.gpuInstances.staticAddress': 'GPU Service Static Access Address',
   'clusters.gpuInstances.staticAddress.tip':
-    'Static address the operator uses to access GPU instances in this cluster (e.g. a LoadBalancer VIP). Optional.'
+    'Static address the operator uses to access GPU instances in this cluster (e.g. a LoadBalancer VIP). Operator default: empty — the access address is generated from host IPs. Changing it does not re-address GPU instances that are already deployed; it applies to newly created ones.',
+  'clusters.gpuInstances.derivedFromNode': 'Derive Instance Types from Nodes',
+  'clusters.gpuInstances.derivedFromNode.tip':
+    'Whether the operator auto-derives instance types (and their backing queues) from node hardware. Enabled: the operator authors a derived instance type for each node flavor. Disabled: it only aligns the resource flavor, and you define every instance type yourself. Operator default: Enabled.',
+  'clusters.gpuInstances.mixedOnNode': 'Allow Mixed Instance Types on a Node',
+  'clusters.gpuInstances.mixedOnNode.tip':
+    'Whether one node may serve both an accelerated and a CPU-only instance type. Enabled: a node is summarized into every type it can serve. Disabled: a node with accelerators yields only an accelerated type, and a CPU-only node only a general one. Operator default: Enabled.',
+  'clusters.gpuInstances.setting.enabled': 'Enabled',
+  'clusters.gpuInstances.setting.disabled': 'Disabled',
+  'clusters.gpuInstances.setting.unmanaged':
+    'Unmanaged (the cluster keeps its own value)'
 };
 
 // ========== To-Do: Translate Keys (Remove After Translation) ==========

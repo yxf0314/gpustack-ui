@@ -1,5 +1,4 @@
-import { createAxiosToken } from '@/hooks/use-chunk-request';
-import { ErrorMessage } from '@gpustack/core-ui';
+import { createAxiosToken, ErrorMessage } from '@gpustack/core-ui';
 import { useRequest } from 'ahooks';
 import { message } from 'antd';
 import { CancelTokenSource } from 'axios';
@@ -61,6 +60,14 @@ export const useQueryProviderModels = () => {
     }
   );
 
+  // the list belongs to the provider it was fetched for — drop it, and any
+  // in-flight request that would repopulate it, once that provider is gone
+  const resetProviderModels = () => {
+    cancel();
+    axiosTokenRef.current?.cancel();
+    setProviderModelList([]);
+  };
+
   useEffect(() => {
     return () => {
       cancel();
@@ -71,7 +78,8 @@ export const useQueryProviderModels = () => {
   return {
     loading,
     providerModelList,
-    fetchProviderModels
+    fetchProviderModels,
+    resetProviderModels
   };
 };
 

@@ -1,8 +1,8 @@
 import breakpoints from '@/config/breakpoints';
 import HotKeys from '@/config/hotkeys';
-import useWindowResize from '@/hooks/use-window-resize';
 import { modelCategoriesMap } from '@/pages/llmodels/config';
 import { MessageOutlined, OneToOneOutlined } from '@ant-design/icons';
+import { useWindowResize } from '@gpustack/core-ui';
 import { useIntl } from '@umijs/max';
 import { useMemoizedFn } from 'ahooks';
 import { Segmented, Tabs, TabsProps } from 'antd';
@@ -115,7 +115,7 @@ const Playground: React.FC = () => {
     return (
       <div className="flex justify-between items-center">
         <div className="flex items-center">
-          <span className="font-600 flex-center">
+          <span className="flex-center">
             {intl.formatMessage({ id: 'menu.playground.chat' })}
           </span>
           {
@@ -157,7 +157,7 @@ const Playground: React.FC = () => {
     <>
       <HeaderLeft>
         <div className="flex items-center">
-          <span className="font-600 flex-center">
+          <span className="flex-center">
             {intl.formatMessage({ id: 'menu.playground.chat' })}
           </span>
           <Segmented

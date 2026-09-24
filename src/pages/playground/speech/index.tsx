@@ -1,9 +1,8 @@
 import breakpoints from '@/config/breakpoints';
 import HotKeys from '@/config/hotkeys';
-import useWindowResize from '@/hooks/use-window-resize';
 import { modelCategoriesMap } from '@/pages/llmodels/config';
 import { AudioOutlined } from '@ant-design/icons';
-import { IconFont } from '@gpustack/core-ui';
+import { IconFont, useWindowResize } from '@gpustack/core-ui';
 import { useIntl, useSearchParams } from '@umijs/max';
 import useMemoizedFn from 'ahooks/lib/useMemoizedFn';
 import { Segmented, Tabs, TabsProps } from 'antd';
@@ -203,7 +202,7 @@ const Playground: React.FC = () => {
     <>
       <HeaderLeft>
         <div className="flex items-center">
-          <span className="font-600 flex-center">
+          <span className="flex-center">
             {intl.formatMessage({ id: 'menu.playground.speech' })}
           </span>
           <Segmented

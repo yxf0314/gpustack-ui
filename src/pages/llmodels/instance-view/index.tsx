@@ -25,12 +25,12 @@ const filterOptions = {
     {
       label: 'Running',
       value: 'running',
-      color: 'var(--ant-color-success)'
+      color: 'var(--color-status-success-text)'
     },
     {
       label: 'Error',
       value: 'error',
-      color: 'var(--ant-color-error)'
+      color: 'var(--color-status-error-text)'
     },
     {
       label: 'Pending',
@@ -52,8 +52,8 @@ const InstanceView = forwardRef((props, ref) => {
     queryParams,
     modalRef,
     handleTableChange,
-    cancelChunkRequest,
-    createTableListChunkRequest,
+    cancelRequestsOnPageInactive,
+    resumeRequestsOnPageActive,
     handleDelete,
     handleDeleteBatch,
     fetchData,
@@ -67,7 +67,9 @@ const InstanceView = forwardRef((props, ref) => {
     deleteAPI: deleteModelInstance,
     watch: true,
     API: MODEL_INSTANCE_API,
-    contentForDelete: 'menu.models.instances'
+    contentForDelete: 'menu.models.instances',
+    // the models page routes pause/resume by which view tab is active
+    pauseOnHidden: false
   });
   const intl = useIntl();
   const { dataList: modelList, fetchData: fetchModelList } =
@@ -89,15 +91,6 @@ const InstanceView = forwardRef((props, ref) => {
     if (val === 'viewlog') {
       openViewLogsModal(row);
     }
-  });
-
-  const cancelRequestsOnPageInactive = useMemoizedFn(() => {
-    cancelChunkRequest();
-  });
-
-  const resumeRequestsOnPageActive = useMemoizedFn(() => {
-    fetchData({} as any, true);
-    createTableListChunkRequest();
   });
 
   useImperativeHandle(ref, () => ({
@@ -160,8 +153,6 @@ const InstanceView = forwardRef((props, ref) => {
       <PageBox>
         <FilterBar
           showSelect={false}
-          marginBottom={22}
-          marginTop={30}
           widths={{ input: 300 }}
           rowSelection={rowSelection}
           handleInputChange={handleNameChange}

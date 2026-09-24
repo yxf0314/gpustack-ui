@@ -1,5 +1,6 @@
 import { PageAction } from '@/config';
 import { PageActionType } from '@/config/types';
+import { ProviderValueMap } from '@/pages/cluster-management/config';
 import {
   CollapsePanel,
   IconFont,
@@ -19,12 +20,14 @@ import {
   DeployFormKeyMap,
   DO_NOT_NOTIFY_RECREATE,
   DO_NOT_TRIGGER_CHECK_COMPATIBILITY,
+  ManualGPUModeMap,
   modelSourceMap,
   ScheduleValueMap
 } from '../config';
 import { FormContext } from '../config/form-context';
 import {
   BackendOption,
+  ClusterOption,
   DeployFormKey,
   FormData,
   LoraListItem,
@@ -34,17 +37,22 @@ import { backendOptionsMap } from '../constants/backend-parameters';
 import { useGenerateGPUOptions } from '../hooks/use-form-initial-values';
 import useQueryBackends from '../hooks/use-query-backends';
 import { useQueryContextLength } from '../services/use-query-context-length';
-import { generateGPUIds } from '../utils';
+import { derivesNativeAnthropicApi, generateGPUIds } from '../utils';
 import AdvanceConfig from './advance-config';
 import BasicForm from './basic';
 import Performance from './performance';
 import ScheduleTypeForm from './schedule-type';
+import ScheduledScalingForm from './scheduled-scaling';
 
 const baseRequiredFields = ['name', 'source'];
 
 const advancedRequiredFields = ['backend', 'image_name', 'run_command'];
 
-const scheduleRequiredFields = ['gpu_selector'];
+const scheduleRequiredFields = [
+  'gpu_selector',
+  'gpu_type_selector',
+  'scaling_schedule'
+];
 
 const performanceRequiredFields = ['speculative_config'];
 
@@ -58,7 +66,7 @@ interface DataFormProps {
   formKey: DeployFormKey;
   sourceDisable?: boolean;
   sourceList?: Global.BaseOption<string>[];
-  clusterList: Global.BaseOption<number>[];
+  clusterList: ClusterOption[];
   fields?: string[]; // control some fields to show in the form
   clearCacheFormValues?: () => void;
   onValuesChange?: (changedValues: any, allValues: any) => void;
@@ -184,9 +192,14 @@ const DataForm: React.FC<DataFormProps> = forwardRef((props, ref) => {
     };
   };
 
-  const updateKVCacheConfig = (backend: string, option: BackendOption) => {
+  // `option` is absent when the backend was picked for the user rather than
+  // from the dropdown: local-path-source forces one on a .gguf path and looks
+  // it up in the loaded options, which come up empty for a cluster that does
+  // not offer it. Absent reads as not-built-in throughout, which is the safe
+  // answer for every switch below.
+  const updateKVCacheConfig = (backend: string, option?: BackendOption) => {
     if (
-      !option.isBuiltIn ||
+      !option?.isBuiltIn ||
       ![backendOptionsMap.SGLang, backendOptionsMap.vllm].includes(backend)
     ) {
       return {
@@ -198,16 +211,23 @@ const DataForm: React.FC<DataFormProps> = forwardRef((props, ref) => {
         }
       };
     }
+    // both vLLM and SGLang attach to shared cache services; a saved
+    // shared selection survives switching between them (availability is
+    // re-checked by the KV cache form's own options sync)
     return {};
   };
 
-  const handleBackendChange = async (val: string, option: BackendOption) => {
+  const handleBackendChange = async (val: string, option?: BackendOption) => {
     await new Promise((resolve) => {
       setTimeout(resolve, 100);
     });
     form.setFieldsValue({
       backend_version: null, // don't set default version here, let the user select it
-      backend_parameters: option.default_backend_param || [],
+      backend_parameters: option?.default_backend_param || [],
+      // Switching away from vLLM clears it: carrying the declaration to, say,
+      // SGLang would have the gateway forward a request the new image cannot
+      // answer, where translating it would have worked.
+      native_anthropic_api: derivesNativeAnthropicApi(val, option),
       ...updateKVCacheConfig(val, option),
       ...updateGPUSelector(val)
     });
@@ -229,21 +249,40 @@ const DataForm: React.FC<DataFormProps> = forwardRef((props, ref) => {
     }
     const gpuSelector = generateGPUIds(data);
     const allValues = {
-      ..._.omit(data, ['scheduleType']),
+      ..._.omit(data, ['scheduleType', 'manualGpuMode']),
       ...gpuSelector
     };
+    // Don't persist a disabled schedule — send null so the model carries no
+    // scaling config unless the user explicitly enabled it.
+    if (!allValues.scaling_schedule?.enabled) {
+      allValues.scaling_schedule = null;
+    } else {
+      // The top "Replicas" input IS the baseline while scheduling is on. Copy
+      // it into the schedule; `replicas` stays as this value and the backend
+      // drives it to the effective count.
+      allValues.scaling_schedule.baseline_replicas = allValues.replicas ?? 0;
+    }
     console.log('submit form data:', allValues);
     onOk(allValues);
   };
 
   // Shared work when the target cluster changes: refetch the GPU/backend
-  // options for the new cluster and reset schedule/gpu selection.
+  // options for the new cluster and reset the per-cluster GPU selections.
+  // The schedule mode itself is kept: switching cluster must not kick a
+  // vGPU-mode form back to Auto (the auto-seed fires exactly on that path).
+  // The manual mode's GPU source is the exception — a Docker cluster publishes
+  // no InstanceTypes, so vGPU slicing has nothing to select there and the
+  // source falls back to whole cards (schedule-type hides the switch to match).
   const applyClusterScopedOptions = (value: number) => {
     getGPUOptionList({ clusterId: value });
     getBackendOptions({ cluster_id: value });
+    const isDocker =
+      clusterList.find((item) => item.value === value)?.provider ===
+      ProviderValueMap.Docker;
     form.setFieldsValue({
-      scheduleType: ScheduleValueMap.Auto,
-      gpu_selector: null
+      gpu_selector: null,
+      gpu_type_selector: null,
+      ...(isDocker ? { manualGpuMode: ManualGPUModeMap.FullGPU } : {})
     });
   };
 
@@ -415,6 +454,7 @@ const DataForm: React.FC<DataFormProps> = forwardRef((props, ref) => {
         action: action,
         realAction: realAction,
         gpuOptions: gpuOptions,
+        clusterList: clusterList,
         backendOptions: backendOptions,
         flatBackendOptions: flatBackendOptions,
         workerLabelOptions: workerLabelOptions,
@@ -445,11 +485,15 @@ const DataForm: React.FC<DataFormProps> = forwardRef((props, ref) => {
           onFinishFailed={handleOnFinishFailed}
           scrollToFirstError={true}
           initialValues={{
-            replicas: 1,
+            // `replicas` is set below (baseline-aware) after ...initialValues so
+            // it wins; no plain default here or it'd be a duplicate key.
+            scaling_schedule: { enabled: false, rules: [] },
             source: props.source,
             placement_strategy: 'spread',
             scheduleType: ScheduleValueMap.Auto,
+            manualGpuMode: ManualGPUModeMap.FullGPU,
             categories: null,
+            native_anthropic_api: false,
             restart_on_error: true,
             distributed_inference_across_workers: true,
             mode: 'throughput',
@@ -457,6 +501,8 @@ const DataForm: React.FC<DataFormProps> = forwardRef((props, ref) => {
             generic_proxy: false,
             extended_kv_cache: {
               enabled: false,
+              mode: 'local',
+              cache_service_id: null,
               chunk_size: null,
               ram_ratio: 1.2,
               ram_size: null
@@ -473,6 +519,16 @@ const DataForm: React.FC<DataFormProps> = forwardRef((props, ref) => {
                 initialValues?.speculative_config?.ngram_max_match_length || 10
             },
             ...initialValues,
+            // When editing a model that already has scheduled scaling on, the
+            // stored `replicas` is the scheduler-driven live value. Seed the
+            // Replicas field with the baseline instead, so it stays the single
+            // source of truth for the idle count (it's copied back to
+            // baseline_replicas on submit).
+            replicas: initialValues?.scaling_schedule?.enabled
+              ? (initialValues.scaling_schedule.baseline_replicas ??
+                initialValues.replicas ??
+                1)
+              : (initialValues?.replicas ?? 1),
             backend_version: initialValues?.backend_version || null,
             max_context_len: initialValues?.max_context_len || 2048
           }}
@@ -500,7 +556,12 @@ const DataForm: React.FC<DataFormProps> = forwardRef((props, ref) => {
                 key: TABKeysMap.SCHEDULING,
                 label: intl.formatMessage({ id: 'models.form.scheduling' }),
                 forceRender: true,
-                children: <ScheduleTypeForm></ScheduleTypeForm>
+                children: (
+                  <>
+                    <ScheduleTypeForm></ScheduleTypeForm>
+                    <ScheduledScalingForm></ScheduledScalingForm>
+                  </>
+                )
               },
               {
                 key: TABKeysMap.ADVANCED,

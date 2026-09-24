@@ -37,7 +37,7 @@ export default {
   'noresult.resources.cluster':
     'No clusters available. Add a cluster to get started.',
   'noresult.resources.k8sCluster':
-    'No clusters available. Add a Kubernetes cluster to get started.',
+    'No clusters available. Register a Kubernetes cluster for GPU Service to get started.',
   'noresult.resources.worker':
     'No workers available. Add a worker to get started.',
   'noresult.resources.gotocluster': 'Create Your First Cluster',
@@ -70,6 +70,10 @@ export default {
   'noresult.gpuservice.storage.subTitle':
     'ストレージはまだ追加されていません。',
   'noresult.gpuservice.storage.nofound': '一致するストレージが見つかりません。',
+  'noresult.gpuservice.instanceType.title': 'No Instance Types',
+  'noresult.gpuservice.instanceType.subTitle':
+    'Create an instance type to get started',
+  'noresult.gpuservice.instanceType.nofound': 'No instance types found',
   'noresult.gpuservice.storageType.title': 'ストレージタイプなし',
   'noresult.gpuservice.storageType.subTitle':
     'ストレージタイプはまだ追加されていません。',
@@ -77,5 +81,9 @@ export default {
     '一致するストレージタイプが見つかりません。',
   'noresult.gpuservice.sshkey.title': 'SSH 公開鍵なし',
   'noresult.gpuservice.sshkey.subTitle': 'SSH 公開鍵はまだ追加されていません。',
-  'noresult.gpuservice.sshkey.nofound': '一致する SSH 公開鍵が見つかりません。'
+  'noresult.gpuservice.sshkey.nofound': '一致する SSH 公開鍵が見つかりません。',
+  'noresult.kvCache.title': 'No cache services yet',
+  'noresult.kvCache.subTitle':
+    'Create a cache service to reuse KV cache across model instances.',
+  'noresult.kvCache.nofound': 'No matching cache services found.'
 };

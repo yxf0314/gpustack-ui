@@ -9,7 +9,7 @@ import {
   DO_NOT_NOTIFY_RECREATE,
   ScheduleValueMap
 } from '../../config';
-import { FormData } from '../../config/types';
+import { ClusterOption, FormData } from '../../config/types';
 import { backendOptionsMap } from '../../constants/backend-parameters';
 import DataForm from '../../forms';
 import { useCheckCompatibility } from '../../hooks';
@@ -25,10 +25,7 @@ type AddModalProps = {
     isGGUF: boolean;
     realAction?: PageActionType;
   };
-  clusterList: Global.BaseOption<
-    number,
-    { provider: string; state: string | number }
-  >[];
+  clusterList: ClusterOption[];
   onOk: (values: FormData) => void | Promise<void>;
   onCancel: () => void;
 };
@@ -180,8 +177,11 @@ const UpdateModal: React.FC<AddModalProps> = (props) => {
     const isVoxBox = [backendOptionsMap.voxBox].includes(formdata.backend);
 
     submitData = {
-      ..._.omit(formdata, ['scheduleType']),
+      ..._.omit(formdata, ['scheduleType', 'manualGpuMode']),
       worker_selector:
+        // Manual picks the GPUs itself — whole cards via gpu_selector or an
+        // InstanceType pool via gpu_type_selector — so neither carries a
+        // stale worker_selector.
         formdata.scheduleType === ScheduleValueMap.Manual
           ? null
           : formdata.worker_selector,
@@ -192,6 +192,16 @@ const UpdateModal: React.FC<AddModalProps> = (props) => {
           }
         : {})
     };
+    // Don't persist a disabled schedule — send null so the model carries no
+    // scaling config unless the user explicitly enabled it.
+    if (!submitData.scaling_schedule?.enabled) {
+      submitData.scaling_schedule = null;
+    } else {
+      // The top "Replicas" input IS the baseline while scheduling is on; copy
+      // it into the schedule. `replicas` stays as this value and the backend
+      // drives it to the effective count.
+      submitData.scaling_schedule.baseline_replicas = submitData.replicas ?? 0;
+    }
     setLoading(true);
     try {
       await onOk(submitData);
@@ -240,6 +250,8 @@ const UpdateModal: React.FC<AddModalProps> = (props) => {
       });
     }
   }, [open, formData]);
+
+  console.log('realAction===', realAction, action);
 
   return (
     <GSDrawer
@@ -298,6 +310,7 @@ const UpdateModal: React.FC<AddModalProps> = (props) => {
           onFinishFailed={onFinishFailed}
           ref={formRef}
           isGGUF={isGGUF}
+          sourceDisable={realAction !== PageAction.COPY}
           onBackendChange={handleAsyncBackendChange}
           onValuesChange={handleManulOnValuesChange}
         ></DataForm>

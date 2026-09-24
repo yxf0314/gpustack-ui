@@ -7,15 +7,19 @@ import useAddWorker from '@/pages/cluster-management/hooks/use-add-worker';
 import { useQueryClusterList } from '@/pages/cluster-management/services/use-query-cluster-list';
 import useNoResourceResult from '@/pages/llmodels/hooks/use-no-resource-result';
 import useGranfanaLink from '@/pages/resources/hooks/use-grafana-link';
-import { DeleteModal, FilterBar } from '@gpustack/core-ui';
+import {
+  DeleteModal,
+  FilterBar,
+  Table as SealTable,
+  type TableOrder
+} from '@gpustack/core-ui';
 import { useIntl } from '@umijs/max';
 import { useMemoizedFn } from 'ahooks';
-import { ConfigProvider, Table, message } from 'antd';
+import { message } from 'antd';
 import { useEffect, useState } from 'react';
 import {
   WORKERS_API,
   deleteWorker,
-  downloadWorkerPrivateKey,
   queryWorkersList,
   updateWorker
 } from '../apis';
@@ -25,6 +29,7 @@ import useWorkerMaintenance from '../hooks/use-worker-maintenance';
 import UpdateLabels from './update-labels';
 import WorkerDetailModal from './worker-detail-modal';
 import WorkerRightActions from './worker-right-actions';
+import WorkerSSHModal from './worker-ssh-modal';
 
 // Optional ``clusterId`` pins the list to a single cluster (used by
 // the cluster-detail page) and hides the cluster-filter dropdown so
@@ -89,6 +94,13 @@ const Workers: React.FC<WorkersProps> = ({ clusterId, source }) => {
     data: {}
   });
   const [workerDetailStatus, setWorkerDetailStatus] = useState<{
+    open: boolean;
+    currentData: ListItem | null;
+  }>({
+    open: false,
+    currentData: null
+  });
+  const [workerSSHStatus, setWorkerSSHStatus] = useState<{
     open: boolean;
     currentData: ListItem | null;
   }>({
@@ -190,10 +202,10 @@ const Workers: React.FC<WorkersProps> = ({ clusterId, source }) => {
     if (val === 'details') {
       handleViewDetail(record);
     }
-    if (val === 'download_ssh_key') {
-      downloadWorkerPrivateKey({
-        id: record.id,
-        name: record.name
+    if (val === 'view_ssh') {
+      setWorkerSSHStatus({
+        open: true,
+        currentData: record
       });
     }
 
@@ -238,9 +250,11 @@ const Workers: React.FC<WorkersProps> = ({ clusterId, source }) => {
     }
   });
 
-  const renderEmpty = (type?: string) => {
-    if (type !== 'Table') return;
-    return noResourceResult;
+  // SealTable reports a sort as a `TableOrder` (or a list of them) instead of
+  // antd's `(pagination, filters, sorter, extra)`, so feed `handleTableChange`
+  // the shape it expects — the sorter slot plus an explicit `sort` action.
+  const handleTableSort = (order: TableOrder | Array<TableOrder>) => {
+    handleTableChange({}, {}, order, { action: 'sort' });
   };
 
   const handleClusterChange = (value: number) => {
@@ -270,8 +284,6 @@ const Workers: React.FC<WorkersProps> = ({ clusterId, source }) => {
         <FilterBar
           showSelect={source !== 'clusterDetail'}
           selectHolder={intl.formatMessage({ id: 'clusters.filterBy.cluster' })}
-          marginBottom={22}
-          marginTop={30}
           buttonText={intl.formatMessage({ id: 'resources.button.create' })}
           handleDeleteByBatch={handleDeleteBatch}
           handleSearch={handleSearch}
@@ -298,33 +310,37 @@ const Workers: React.FC<WorkersProps> = ({ clusterId, source }) => {
             )
           }
         ></FilterBar>
-        <ConfigProvider renderEmpty={renderEmpty}>
-          <Table
-            tableLayout="auto"
-            columns={columns}
-            sortDirections={TABLE_SORT_DIRECTIONS}
-            showSorterTooltip={false}
-            scroll={{ x: 'max-content' }}
-            className={'scroll-table'}
-            dataSource={dataSource.dataList}
-            loading={{
-              spinning: dataSource.loading,
-              size: 'middle'
-            }}
-            rowKey="id"
-            onChange={handleTableChange}
-            rowSelection={source === 'clusterDetail' ? undefined : rowSelection}
-            pagination={{
-              size: 'middle',
-              showSizeChanger: true,
-              pageSize: queryParams.perPage,
-              current: queryParams.page,
-              total: dataSource.total,
-              hideOnSinglePage: queryParams.perPage === 10,
-              onChange: handlePageChange
-            }}
-          ></Table>
-        </ConfigProvider>
+        <SealTable
+          rowKey="id"
+          columns={columns}
+          dataSource={dataSource.dataList}
+          loading={dataSource.loading}
+          loadend={dataSource.loadend}
+          sortDirections={TABLE_SORT_DIRECTIONS}
+          showSorterTooltip={false}
+          onTableSort={handleTableSort}
+          // `true` widens the row to the columns' own floors (sum of their
+          // `minWidth` + the prefix gutter) and scrolls past that. Not
+          // `'max-content'`: on a grid of `fr` tracks the greediest cell — the
+          // wrap-happy labels column — sets the `fr` unit for every track, which
+          // blows the table up to ~3.4x the width it actually needs.
+          scroll={{ x: true }}
+          rowSelection={source === 'clusterDetail' ? undefined : rowSelection}
+          empty={noResourceResult}
+          // Matches the `<NoResult minHeight>` inside `noResourceResult` so the
+          // first-load spinner, the empty state and the eventual rows occupy
+          // one stable block instead of jumping on entry.
+          emptyMinHeight="calc(100vh - 300px)"
+          pagination={{
+            size: 'middle',
+            showSizeChanger: true,
+            pageSize: queryParams.perPage,
+            current: queryParams.page,
+            total: dataSource.total,
+            hideOnSinglePage: queryParams.perPage === 10,
+            onChange: handlePageChange
+          }}
+        ></SealTable>
         <DeleteModal ref={modalRef}></DeleteModal>
         <UpdateLabels
           open={updateLabelsData.open}
@@ -341,6 +357,11 @@ const Workers: React.FC<WorkersProps> = ({ clusterId, source }) => {
           onClose={() =>
             setWorkerDetailStatus({ currentData: null, open: false })
           }
+        />
+        <WorkerSSHModal
+          open={workerSSHStatus.open}
+          currentData={workerSSHStatus.currentData}
+          onClose={() => setWorkerSSHStatus({ currentData: null, open: false })}
         />
         {MaintenanceModal}
         {AddWorkerModal}

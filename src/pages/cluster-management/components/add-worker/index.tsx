@@ -1,6 +1,6 @@
-import { createAxiosToken } from '@/hooks/use-chunk-request';
 import useAddWorkerMessage from '@/pages/cluster-management/hooks/use-add-worker-message';
-import { ColumnWrapper, GSDrawer } from '@gpustack/core-ui';
+import { getDriverKeysByVendors } from '@/pages/resources/config/gpu-driver';
+import { ColumnWrapper, createAxiosToken, GSDrawer } from '@gpustack/core-ui';
 import { useIntl } from '@umijs/max';
 import { Alert } from 'antd';
 import React, { useEffect } from 'react';
@@ -23,6 +23,20 @@ const Footer = styled.div`
     left: 0px;
   }
 `;
+
+type RegistrationInfo = {
+  token: string;
+  image: string;
+  server_url: string;
+  cluster_id: number | null;
+};
+
+const emptyRegistrationInfo: RegistrationInfo = {
+  token: '',
+  image: '',
+  server_url: '',
+  cluster_id: null
+};
 
 type AddWorkerProps = {
   open: boolean;
@@ -62,36 +76,56 @@ const AddWorker: React.FC<AddWorkerProps> = (props) => {
   const { addedCount, createModelsChunkRequest, reset } = useAddWorkerMessage();
   const firstLoad = React.useRef(true);
   const axiosTokenRef = React.useRef<any>(null);
-  const [registrationInfo, setRegistrationInfo] = React.useState<{
-    token: string;
-    image: string;
-    server_url: string;
-    cluster_id: number | null;
+  // The two always move together — a cluster selection produces both its
+  // registration token and the vendors that cluster already runs.
+  const [clusterState, setClusterState] = React.useState<{
+    registrationInfo: RegistrationInfo;
+    registeredGPUs: string[];
   }>({
-    token: '',
-    image: '',
-    server_url: '',
-    cluster_id: null
+    registrationInfo: emptyRegistrationInfo,
+    registeredGPUs: []
   });
 
   const handleOnClusterChange = async (value: number, row?: any) => {
-    console.log('handleOnClusterChange value, row=========', value, row);
-    try {
-      createModelsChunkRequest({ cluster_id: value });
-      axiosTokenRef.current?.cancel?.();
-      axiosTokenRef.current = createAxiosToken();
-      const data = await queryClusterToken(
-        { id: value },
-        { token: axiosTokenRef.current.token }
-      );
-      firstLoad.current = false;
-      setRegistrationInfo({
-        ...data,
-        cluster_id: value
-      });
-    } catch (error) {
-      firstLoad.current = false;
-    }
+    axiosTokenRef.current?.cancel?.();
+    const axiosToken = createAxiosToken();
+    axiosTokenRef.current = axiosToken;
+
+    // The vendor step has to start from the vendors the cluster already runs:
+    // re-registering a node against the NVIDIA default produces a command that
+    // node can't register with. Clusters are homogeneous in practice, so this
+    // also gives Docker's Add Worker a better guess than a fixed NVIDIA. The
+    // vendors come off the watch's baseline seed, which already lists this
+    // cluster's workers with their `status.gpu_devices`.
+    const [tokenResult, workersResult] = await Promise.allSettled([
+      queryClusterToken({ id: value }, { token: axiosToken.token }),
+      createModelsChunkRequest({ cluster_id: value })
+    ]);
+
+    // a newer cluster selection already superseded this one
+    if (axiosTokenRef.current !== axiosToken) return;
+
+    firstLoad.current = false;
+
+    const workers =
+      workersResult.status === 'fulfilled' ? workersResult.value || [] : [];
+
+    setClusterState({
+      // Keeping the previous cluster's info on failure would hand out a command
+      // carrying another cluster's registration token, against a cluster the
+      // rest of the step has already switched away from. Empty is the honest
+      // failure: there is nothing to copy.
+      registrationInfo:
+        tokenResult.status === 'fulfilled'
+          ? { ...tokenResult.value, cluster_id: value }
+          : emptyRegistrationInfo,
+      registeredGPUs: getDriverKeysByVendors(
+        workers.flatMap(
+          (worker) =>
+            worker.status?.gpu_devices?.map((device) => device.vendor) || []
+        )
+      )
+    });
   };
 
   useEffect(() => {
@@ -101,7 +135,14 @@ const AddWorker: React.FC<AddWorkerProps> = (props) => {
     if (!open) {
       reset();
       axiosTokenRef.current?.cancel?.();
+      axiosTokenRef.current = null;
       firstLoad.current = true;
+      // Drop the previous cluster's data so reopening for another cluster
+      // never flashes a stale vendor preselection.
+      setClusterState({
+        registrationInfo: emptyRegistrationInfo,
+        registeredGPUs: []
+      });
     }
   }, [open, cluster_id]);
 
@@ -121,8 +162,6 @@ const AddWorker: React.FC<AddWorkerProps> = (props) => {
       { count: addedCount }
     );
   };
-
-  console.log('addedCount 1========', addedCount);
 
   return (
     <GSDrawer
@@ -172,7 +211,8 @@ const AddWorker: React.FC<AddWorkerProps> = (props) => {
           clusterList={clusterList}
           clusterLoading={clusterLoading}
           onClusterChange={handleOnClusterChange}
-          registrationInfo={registrationInfo}
+          registrationInfo={clusterState.registrationInfo}
+          registeredGPUs={clusterState.registeredGPUs}
         ></AddWorkerStep>
       </ColumnWrapper>
     </GSDrawer>

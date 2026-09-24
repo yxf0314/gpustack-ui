@@ -13,6 +13,8 @@ export default {
   'clusters.button.addNodePool': 'Add Worker Pool',
   'clusters.button.add.credential': 'Add {provider} Credential',
   'clusters.credential.title': 'Cloud Credential',
+  'clusters.credential.signinToCreate':
+    'No {name} yet? <a href="{link}" target="_blank">Sign in or sign up</a> to create one.',
   'clusters.credential.token': 'Access Token',
   'clusters.workerpool.region': 'Region',
   'clusters.workerpool.zone': 'Zone',
@@ -72,8 +74,13 @@ export default {
     'For <span class="bold-text">non-Docker</span> clusters, please register clusters or manage worker pools from the Clusters page.',
   'clusters.addworker.selectGPU': 'Select GPU Vendor',
   'clusters.addworker.selectGPU.multiTag': 'Multi-select',
-  'clusters.addworker.selectGPU.subtitle':
-    'You can select multiple GPU Vendors or none for CPU-only clusters',
+  'clusters.addworker.selectHardware': 'Select Hardware Type',
+  'clusters.addworker.selectHardware.subtitle':
+    'Select every hardware type this cluster should run workers on',
+  'clusters.addworker.cpuNode.tips':
+    'Deploys a worker on every node without a GPU. Leave it unselected when your control plane shares the cluster with the GPU nodes and you do not want workers running on the CPU nodes.',
+  'clusters.addworker.noWorkerSelected.error':
+    'Select at least one hardware type — with neither CPU Node nor a GPU vendor selected, no worker would be deployed at all.',
   'clusters.addworker.checkEnv': 'Check Environment',
   'clusters.addworker.checkEnv.cpuOnlyTips':
     'Use the following command to verify that the Kubernetes cluster has at least one ready node. You are registering a CPU-only cluster.',
@@ -108,17 +115,30 @@ export default {
   'clusters.addworker.cacheVolume.holder':
     'e.g. /data/cache (path must start with /)',
   'clusters.addworker.vendorNotes.title': 'Notes for {vendor} Device',
-  'clusters.button.genToken':
-    'Need to create a new token? Click <a href="{link}" target="_blank">here</a>.',
   'clusters.addworker.amdNotes-01': `If the <span class="bold-text">/opt/rocm</span> directory does not exist, please create a symbolic link pointing to the ROCm installed path: <span class="bold-text">ln -s /path/to/rocm /opt/rocm</span>.`,
+  'clusters.addworker.amdNotes-02': `If multiple ROCm versions are managed on the host, you must mount <span class="bold-text">/opt/rocm/lib</span> to avoid detection failures.`,
   'clusters.addworker.message.success_single':
     '{count} new worker has been added to the cluster.',
   'clusters.addworker.message.success_multiple':
     '{count} new workers have been added to the cluster.',
   'clusters.create.serverUrl': 'GPUStack Server URL',
   'clusters.create.workerConfig': 'Worker Configuration',
-  'clusters.edit.k8sOptions.changed.tip':
-    'You have changed the Kubernetes options. Re-run the registration command on the target cluster for the changes to take effect.',
+  'clusters.chartValues.title': 'Chart Values (YAML)',
+  'clusters.chartValues.tip':
+    'Values for the GPUStack Helm chart, keyed exactly as the chart keys them and merged over the values the server derives. Use it to reach anything the chart and its subcharts offer that has no field above — for example turning off a component the cluster already provides. Lists replace rather than append, as in Helm itself.',
+  'clusters.chartValues.reapply.tip':
+    'Saving the cluster changes nothing in Kubernetes. Re-run Register Cluster to get the manifest and apply it again — the in-cluster Job compares what the manifest asks for against what the release has installed, and upgrades only on a difference.',
+  'clusters.chartValues.doc.chart': 'Chart values',
+  'clusters.chartValues.doc.operator': 'Operator chart',
+  'clusters.chartValues.error.invalidYaml': 'Invalid YAML: {reason}',
+  'clusters.chartValues.error.notJson':
+    'The value at {path} is not a string, number, boolean, list or map — YAML read it as a date or binary value, which cannot be passed through unchanged. Quote it to keep it as text.',
+  'clusters.chartValues.error.unsafeInteger':
+    'The whole number at {path} is larger than can be carried exactly — reading the YAML already rounded it, so a different value would be sent. Quote it to keep the digits.',
+  'clusters.chartValues.error.notMapping':
+    'Chart values must be a YAML mapping of keys, not a single value or a list.',
+  'clusters.edit.registration.changed.tip':
+    'You have changed settings that are applied when a worker registers. Re-run the registration command on the target cluster for the changes to take effect.',
   'clusters.addworker.containerName': 'Worker Container Name',
   'clusters.addworker.containerName.tips':
     'Specify a name for the worker container.',
@@ -128,7 +148,7 @@ export default {
   'clusters.table.ip.internal': 'Internal',
   'clusters.table.ip.external': 'External',
   'clusters.form.serverUrl.tips':
-    'Specify an externally accessible GPUStack service URL if the worker cannot access GPUStack Server directly.',
+    'Specify an externally accessible GPUStack service URL if the worker cannot access GPUStack Server directly. For example: {example}',
   'clusters.form.setDefault': 'Set as Default',
   'clusters.form.setDefault.tips': 'Default for deployment.',
   'clusters.addworker.noClusters': 'No available Docker clusters found',
@@ -174,6 +194,8 @@ export default {
   'clusters.systemDefaultContainerRegistry.title': 'Default Container Registry',
   'clusters.systemDefaultContainerRegistry.tip':
     'Default registry used to resolve GPUStack images for this cluster. Falls back to the server default when unset.',
+  'clusters.systemDefaultContainerRegistry.dockerHubUnreachable':
+    '{provider} instances cannot reach Docker Hub. Use a mirror or a private registry.',
   'clusters.k8sOptions.title': 'Kubernetes Deployment Options',
   'clusters.imageCredentials.title': 'Image Credentials',
   'clusters.imageCredentials.add': 'Add Credential',
@@ -198,5 +220,15 @@ export default {
     'For on-demand GPU compute — e.g. interactive development, training jobs, or custom environments.',
   'clusters.gpuInstances.staticAddress': 'GPU Service Static Access Address',
   'clusters.gpuInstances.staticAddress.tip':
-    'Static address the operator uses to access GPU instances in this cluster (e.g. a LoadBalancer VIP). Optional.'
+    'Static address the operator uses to access GPU instances in this cluster (e.g. a LoadBalancer VIP). Operator default: empty — the access address is generated from host IPs. Changing it does not re-address GPU instances that are already deployed; it applies to newly created ones.',
+  'clusters.gpuInstances.derivedFromNode': 'Derive Instance Types from Nodes',
+  'clusters.gpuInstances.derivedFromNode.tip':
+    'Whether the operator auto-derives instance types (and their backing queues) from node hardware. Enabled: the operator authors a derived instance type for each node flavor. Disabled: it only aligns the resource flavor, and you define every instance type yourself. Operator default: Enabled.',
+  'clusters.gpuInstances.mixedOnNode': 'Allow Mixed Instance Types on a Node',
+  'clusters.gpuInstances.mixedOnNode.tip':
+    'Whether one node may serve both an accelerated and a CPU-only instance type. Enabled: a node is summarized into every type it can serve. Disabled: a node with accelerators yields only an accelerated type, and a CPU-only node only a general one. Operator default: Enabled.',
+  'clusters.gpuInstances.setting.enabled': 'Enabled',
+  'clusters.gpuInstances.setting.disabled': 'Disabled',
+  'clusters.gpuInstances.setting.unmanaged':
+    'Unmanaged (the cluster keeps its own value)'
 };

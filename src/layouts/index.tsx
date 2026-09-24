@@ -39,7 +39,7 @@ import {
   useNavigate,
   type IRoute
 } from '@umijs/max';
-import { Button, ConfigProvider, Modal, theme } from 'antd';
+import { App, Button, ConfigProvider, Modal, theme } from 'antd';
 import { useAtom } from 'jotai';
 import 'overlayscrollbars/overlayscrollbars.css';
 import { useEffect, useMemo, useRef } from 'react';
@@ -49,7 +49,6 @@ import './Layout.css';
 import { LogoIcon, SLogoIcon } from './Logo';
 import ErrorBoundary from './error-boundary';
 import { ExtraContent } from './extraRender';
-import { patchRoutes } from './runtime';
 import SiderMenu from './sider-menu';
 
 const CHECK_RESOURCE_PATH = [
@@ -127,11 +126,13 @@ export default (props: any) => {
   const { clientRoutes } = useAppData();
   const requestResourceRef = useRef<boolean>(false);
 
-  const { fetchResourceData, NoResourceModal } = useAddResource({
-    onCreated() {
-      requestResourceRef.current = false;
+  const { fetchResourceData, NoResourceModal, canAddResource } = useAddResource(
+    {
+      onCreated() {
+        requestResourceRef.current = false;
+      }
     }
-  });
+  );
 
   const initialInfo = (useModel && useModel('@@initialState')) || {
     initialState: undefined,
@@ -243,15 +244,21 @@ export default (props: any) => {
 
   const role = initialState?.currentUser?.is_admin ? 'admin' : 'user';
   const [route] = useAccessMarkedRoutes(mapRoutes(newRoutes, role));
-  console.log('route++++++++', route, clientRoutes);
-  patchRoutes({
-    routes: route.children,
-    initialState: initialInfo.initialState
-  });
 
+  // `route` MUST stay in the deps. `useAccessMarkedRoutes` re-marks
+  // `unaccessible` whenever the access instance changes, and access is
+  // recomputed on every `initialState` commit — which happens twice on
+  // the SPA-login path (currentUser, then the probe backfill below).
+  // Keying only on `location.pathname` froze `matchedRoute` on the
+  // FIRST marking, so a route that later resolves to unaccessible kept
+  // its stale `unaccessible: false` and `Exception`'s 403 auto-redirect
+  // never fired — leaving the user parked on a page they can't see
+  // (e.g. `/dashboard` in a Personal Org) with no way out but a manual
+  // refresh. The memoized array is referentially stable between access
+  // changes, so this does not recompute per render.
   const matchedRoute = useMemo(
     () => matchRoutes(route?.children || [], location.pathname)?.pop?.()?.route,
-    [location.pathname]
+    [route, location.pathname]
   );
 
   const collapsed = useMemo(() => {
@@ -270,9 +277,12 @@ export default (props: any) => {
     const { location } = history;
     const { pathname } = location;
 
+    // `canAddResource` is the hook's own access predicate, not
+    // `currentUser.is_admin` — the raw field disagrees with the
+    // routes the prompt sends you to (see use-add-resource).
     if (
       !CHECK_RESOURCE_PATH.includes(pathname) &&
-      initialState?.currentUser?.is_admin &&
+      canAddResource &&
       !requestResourceRef.current &&
       !userSettings.hideAddResourceModal
     ) {
@@ -348,118 +358,135 @@ export default (props: any) => {
         }
       }}
     >
-      <CoreUIProvider
-        config={{
-          apiBaseUrl: GPUSTACK_API_BASE_URL,
-          theme: userSettings.theme,
-          iconUrl: '',
-          isDarkTheme: userSettings.isDarkTheme,
-          defaultColorPrimary: COLOR_PRIMARY
-        }}
-        hooks={{
-          useUserSettings,
-          useUserSettingsStorage,
-          useIntl,
-          useCurrentUser,
-          useTableFetch
-        }}
-        i18n={intl}
-        locale={{
-          getAllLocales: getAllLocales,
-          setLocale: setLocale
-        }}
-        services={{
-          request: request,
-          router: {
-            push: (path: string) => navigate(path),
-            replace: (path: string) => navigate(path, { replace: true }),
-            goBack: () => navigate(-1)
-          }
-        }}
-        localStore={{
-          readColumnSettings,
-          writeColumnSettings,
-          readState,
-          writeState
-        }}
-        slots={coreUISlots}
-        access={{ Access, useAccess }}
-      >
-        <DarkMask></DarkMask>
-        <ProLayout
-          fixSiderbar
-          fixedHeader={false}
-          headerRender={false}
-          breadcrumbRender={false}
-          route={route}
-          location={location}
-          title={userConfig.title}
-          navTheme={userSettings.theme}
-          layout="side"
-          contentStyle={{
-            paddingBlock: 0,
-            paddingInline: 0
+      {/* Bridges antd's static-looking APIs (modal.confirm, message) into this
+          ConfigProvider. Without it a Modal.confirm renders with the default
+          algorithm and locale -- a light dialog with an untranslated "Cancel"
+          while the app is in dark mode. ``component={false}`` keeps it from
+          adding a DOM node that would change the layout.
+
+          antd 6 turns cssVar on by default, and App warns whenever cssVar meets
+          ``component={false}``: with no DOM node, its cssVar class has nothing to
+          attach to. Known and harmless here -- the class would only have carried
+          App's own base style (color / fontSize / lineHeight / fontFamily, all of
+          which body already provides), while message / modal / notification each
+          attach their own. The warning is dev-only; devUseWarning is a noop in
+          production builds. Left as is deliberately: switching to the default
+          "div" would reintroduce the layout-changing node this prop exists to
+          avoid, and would need the height chain rebuilt for ProLayout. */}
+      <App component={false}>
+        <CoreUIProvider
+          config={{
+            apiBaseUrl: GPUSTACK_API_BASE_URL,
+            theme: userSettings.theme,
+            iconUrl: '',
+            isDarkTheme: userSettings.isDarkTheme,
+            defaultColorPrimary: COLOR_PRIMARY
           }}
-          openKeys={false}
-          disableMobile={true}
-          siderWidth={220}
-          menuFooterRender={() => (
-            <Button
-              style={{
-                border: 'none'
-              }}
-              size="small"
-              type={'text'}
-              onClick={handleToggleCollapse}
-            >
-              <IconFont
-                type={collapsed ? 'icon-expand-left' : 'icon-expand-right'}
-                className="font-size-18"
-              />
-            </Button>
-          )}
-          onCollapse={onCollapse}
-          onMenuHeaderClick={onMenuHeaderClick}
-          collapsed={userSettings.collapsed}
-          onPageChange={onPageChange}
-          formatMessage={formatMessage}
-          menu={{
-            locale: true,
-            type: 'group'
+          hooks={{
+            useUserSettings,
+            useUserSettingsStorage,
+            useIntl,
+            useCurrentUser,
+            useTableFetch
           }}
-          splitMenus={true}
-          logo={userSettings.collapsed ? <SLogoIcon /> : <LogoIcon />}
-          menuContentRender={menuContentRender}
-          {...runtimeConfig}
-          ErrorBoundary={ErrorBoundary}
+          i18n={intl}
+          locale={{
+            getAllLocales: getAllLocales,
+            setLocale: setLocale
+          }}
+          services={{
+            request: request,
+            router: {
+              push: (path: string) => navigate(path),
+              replace: (path: string) => navigate(path, { replace: true }),
+              goBack: () => navigate(-1)
+            }
+          }}
+          localStore={{
+            readColumnSettings,
+            writeColumnSettings,
+            readState,
+            writeState
+          }}
+          slots={coreUISlots}
+          access={{ Access, useAccess }}
         >
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              height: '100vh',
-              overflow: 'hidden'
+          <DarkMask></DarkMask>
+          <ProLayout
+            fixSiderbar
+            fixedHeader={false}
+            headerRender={false}
+            breadcrumbRender={false}
+            route={route}
+            location={location}
+            title={userConfig.title}
+            navTheme={userSettings.theme}
+            layout="side"
+            contentStyle={{
+              paddingBlock: 0,
+              paddingInline: 0
             }}
+            openKeys={false}
+            disableMobile={true}
+            siderWidth={220}
+            menuFooterRender={() => (
+              <Button
+                style={{
+                  border: 'none'
+                }}
+                size="small"
+                type={'text'}
+                onClick={handleToggleCollapse}
+              >
+                <IconFont
+                  type={collapsed ? 'icon-expand-left' : 'icon-expand-right'}
+                  className="font-size-18"
+                />
+              </Button>
+            )}
+            onCollapse={onCollapse}
+            onMenuHeaderClick={onMenuHeaderClick}
+            collapsed={userSettings.collapsed}
+            onPageChange={onPageChange}
+            formatMessage={formatMessage}
+            menu={{
+              locale: true,
+              type: 'group'
+            }}
+            splitMenus={true}
+            logo={userSettings.collapsed ? <SLogoIcon /> : <LogoIcon />}
+            menuContentRender={menuContentRender}
+            {...runtimeConfig}
+            ErrorBoundary={ErrorBoundary}
           >
-            <PluginExtraFields name="GlobalLicenseBanner" />
-            <Exception
-              route={matchedRoute}
-              notFound={runtimeConfig?.notFound}
-              noFound={runtimeConfig?.noFound}
-              unAccessible={runtimeConfig?.unAccessible}
-              noAccessible={runtimeConfig?.noAccessible}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                height: '100vh',
+                overflow: 'hidden'
+              }}
             >
-              <PageContainerInner>
-                <div>
-                  <Outlet />
-                </div>
-              </PageContainerInner>
-            </Exception>
-          </div>
-          {NoResourceModal}
-          {contextHolder}
-        </ProLayout>
-      </CoreUIProvider>
+              <PluginExtraFields name="GlobalLicenseBanner" />
+              <Exception
+                route={matchedRoute}
+                notFound={runtimeConfig?.notFound}
+                noFound={runtimeConfig?.noFound}
+                unAccessible={runtimeConfig?.unAccessible}
+                noAccessible={runtimeConfig?.noAccessible}
+              >
+                <PageContainerInner>
+                  <div>
+                    <Outlet />
+                  </div>
+                </PageContainerInner>
+              </Exception>
+            </div>
+            {NoResourceModal}
+            {contextHolder}
+          </ProLayout>
+        </CoreUIProvider>
+      </App>
     </ConfigProvider>
   );
 };

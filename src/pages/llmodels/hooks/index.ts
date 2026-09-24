@@ -1,8 +1,8 @@
 import { clusterListAtom, workerListAtom } from '@/atoms/models';
-import { createAxiosToken } from '@/hooks/use-chunk-request';
 import { queryModelFilesList } from '@/pages/resources/apis';
 import { ListItem as WorkerListItem } from '@/pages/resources/config/types';
 import { convertFileSize } from '@/utils';
+import { createAxiosToken } from '@gpustack/core-ui';
 import { useIntl } from '@umijs/max';
 import { useAtomValue } from 'jotai';
 import _ from 'lodash';
@@ -14,7 +14,7 @@ import {
   backendOptionsMap,
   BuiltInBackendOptions
 } from '../constants/backend-parameters';
-import { generateGPUIds } from '../utils';
+import { derivesNativeAnthropicApi, generateGPUIds } from '../utils';
 import useCheckBackend from './use-check-backend';
 import useRecognizeAudio from './use-recognize-audio';
 
@@ -172,6 +172,34 @@ export const useCheckCompatibility = () => {
     });
   };
 
+  // A slice request is only valid as a pair, and the API is specific about
+  // which halves it accepts (GPUTypeSelector.normalize_slice_percentages):
+  // memory must be 1-100, while cores may be absent — it defaults to 100 —
+  // but not an explicit 0. Anything else is not a smaller request, it is an
+  // unparseable one. So leave a request the API would accept (or a partition
+  // profile) untouched, and reduce the rest to the whole-card pair it
+  // normalizes an all-zero selector to, which costs a half-typed selector
+  // nothing. Leaving an absent cores percentage absent matters: forcing it to
+  // a pair here would evaluate a whole card for a request the API reads as
+  // memory% / 100%.
+  const normalizeSelectorForEvaluate = (selector: any) => {
+    if (selector.accelerator_partitioned_profile) {
+      return selector;
+    }
+    const cores = selector.accelerator_sliced_cores_percentage;
+    const coresSet = cores !== null && cores !== undefined && cores !== '';
+    const memorySliced =
+      _.toNumber(selector.accelerator_sliced_memory_percentage) > 0;
+    if (memorySliced && (!coresSet || _.toNumber(cores) > 0)) {
+      return selector;
+    }
+    return {
+      ...selector,
+      accelerator_sliced_memory_percentage: 0,
+      accelerator_sliced_cores_percentage: 0
+    };
+  };
+
   const handleEvaluate = async (data: any) => {
     try {
       // when no cluster selected, show warning and prompt user to add cluster first
@@ -201,7 +229,30 @@ export const useCheckCompatibility = () => {
           cluster_id: data.cluster_id,
           model_specs: [
             {
-              ..._.omit(data, ['scheduleType']),
+              // scaling_schedule has no bearing on resource/compatibility
+              // evaluation; drop it so in-progress (possibly incomplete) rules
+              // never fail the evaluate request.
+              ..._.omit(data, [
+                'scheduleType',
+                'manualGpuMode',
+                'scaling_schedule'
+              ]),
+              // Same reasoning for the vGPU selector, which the form walks
+              // through an incomplete state on every GPU-type switch: the new
+              // type's capacity may not admit the percentage the previous one
+              // carried, leaving a cores percentage without a memory one,
+              // which the API rejects outright (GpuTypeSelector rejects a
+              // sliced request whose memory percentage is not 1-100). The
+              // whole evaluation would 422 on a half-typed request and surface
+              // as an error toast, so evaluate the equivalent whole-card
+              // request instead.
+              ...(data.gpu_type_selector
+                ? {
+                    gpu_type_selector: normalizeSelectorForEvaluate(
+                      data.gpu_type_selector
+                    )
+                  }
+                : {}),
               categories: Array.isArray(data.categories)
                 ? data.categories
                 : data.categories
@@ -571,6 +622,11 @@ export const useSelectModel = (data: { gpuOptions: any[] }) => {
         ...(selectedBackend?.default_env || {})
       },
       backend_parameters: [...(selectedBackend?.default_backend_param || [])],
+      // Derived here as well as in the backend dropdown's handler: this path
+      // writes `backend` straight into the form, so without it the same
+      // deployment would answer differently depending on whether the user
+      // happened to touch the dropdown.
+      native_anthropic_api: derivesNativeAnthropicApi(backend, selectedBackend),
       name: name,
       source: source,
       backend: backend

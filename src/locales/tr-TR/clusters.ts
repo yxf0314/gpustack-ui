@@ -13,6 +13,8 @@ export default {
   'clusters.button.addNodePool': 'İşçi Havuzu Ekle',
   'clusters.button.add.credential': '{provider} Kimlik Bilgisi Ekle',
   'clusters.credential.title': 'Bulut Kimlik Bilgisi',
+  'clusters.credential.signinToCreate':
+    'Henüz {name} yok mu? Oluşturmak için <a href="{link}" target="_blank">giriş yapın veya kaydolun</a>.',
   'clusters.credential.token': 'Erişim Anahtarı',
   'clusters.workerpool.region': 'Bölge',
   'clusters.workerpool.zone': 'Alan',
@@ -72,8 +74,13 @@ export default {
     '<span class="bold-text">Docker dışı</span> kümeler için lütfen Kümeler sayfasından küme kaydı oluşturun veya işçi havuzlarını yönetin.',
   'clusters.addworker.selectGPU': 'GPU Üreticisi Seç',
   'clusters.addworker.selectGPU.multiTag': 'Multi-select',
-  'clusters.addworker.selectGPU.subtitle':
-    'Birden fazla GPU Üreticisi seçebilir veya yalnızca CPU kümeleri için hiçbirini seçmeyebilirsiniz',
+  'clusters.addworker.selectHardware': 'Donanım Türü Seç',
+  'clusters.addworker.selectHardware.subtitle':
+    'Bu kümenin worker çalıştırması gereken tüm donanım türlerini seçin',
+  'clusters.addworker.cpuNode.tips':
+    'GPU’su olmayan tüm düğümlere worker dağıtır. Kontrol düzleminiz GPU düğümleriyle aynı kümedeyse ve CPU düğümlerinde worker çalıştırmak istemiyorsanız seçili bırakmayın.',
+  'clusters.addworker.noWorkerSelected.error':
+    'En az bir donanım türü seçin — ne CPU Node ne de bir GPU üreticisi seçilmediğinde hiçbir worker dağıtılmaz.',
   'clusters.addworker.checkEnv': 'Ortamı Kontrol Et',
   'clusters.addworker.checkEnv.cpuOnlyTips':
     'Kubernetes kümesinde en az bir hazır düğüm olduğunu doğrulamak için aşağıdaki komutu kullanın. Yalnızca CPU kümelerini kaydediyorsunuz.',
@@ -108,17 +115,30 @@ export default {
   'clusters.addworker.cacheVolume.holder':
     'örn. /data/cache (yol / ile başlamalıdır)',
   'clusters.addworker.vendorNotes.title': '{vendor} Cihaz Notları',
-  'clusters.button.genToken':
-    'Yeni token oluşturmanız mı gerekiyor? <a href="{link}" target="_blank">Buraya tıklayın</a>.',
   'clusters.addworker.amdNotes-01': `<span class="bold-text">/opt/rocm</span> dizini mevcut değilse, lütfen ROCm kurulum yoluna işaret eden sembolik bağlantı oluşturun: <span class="bold-text">ln -s /path/to/rocm /opt/rocm</span>.`,
+  'clusters.addworker.amdNotes-02': `Ana makinede birden fazla ROCm sürümü yönetiliyorsa, algılama hatalarını önlemek için <span class="bold-text">/opt/rocm/lib</span> dizinini bağlamanız gerekir.`,
   'clusters.addworker.message.success_single':
     '{count} yeni işçi düğüm kümeye eklendi.',
   'clusters.addworker.message.success_multiple':
     '{count} yeni işçi düğüm kümeye eklendi.',
   'clusters.create.serverUrl': "GPUStack Sunucu URL'si",
   'clusters.create.workerConfig': 'İşçi Düğüm Yapılandırması',
-  'clusters.edit.k8sOptions.changed.tip':
-    'Kubernetes seçeneklerini değiştirdiniz. Değişikliklerin etkili olması için kayıt komutunu hedef kümede yeniden çalıştırın.',
+  'clusters.chartValues.title': 'Chart Values (YAML)',
+  'clusters.chartValues.tip':
+    'GPUStack Helm chart’ının values değerleri; anahtarlar chart’ın kendi anahtarlarıyla aynıdır ve sunucunun türettiği değerlerin üzerine birleştirilir. Yukarıda karşılık gelen bir alan olmayan, chart ve alt chart’larının sunduğu her şey buradan ayarlanabilir — örneğin kümede hâlihazırda bulunan bir bileşeni kapatmak. Helm’de olduğu gibi listeler eklenmez, tümüyle değiştirilir.',
+  'clusters.chartValues.reapply.tip':
+    'Kümeyi kaydetmek Kubernetes tarafında hiçbir şeyi değiştirmez. Değişiklikten sonra «Kümeyi Kaydet» akışını yeniden çalıştırıp manifest’i alın ve tekrar uygulayın — küme içindeki Job, manifest’in istediği yapılandırmayı release’in kurulu yapılandırmasıyla karşılaştırır ve yalnızca fark varsa yükseltme yapar.',
+  'clusters.chartValues.doc.chart': 'Chart values',
+  'clusters.chartValues.doc.operator': 'Operator chart',
+  'clusters.chartValues.error.invalidYaml': 'Geçersiz YAML: {reason}',
+  'clusters.chartValues.error.notJson':
+    '{path} konumundaki değer bir dize, sayı, mantıksal değer, liste veya eşleme değil — YAML onu tarih ya da ikili değer olarak okudu ve bu hâliyle olduğu gibi iletilemez. Metin olarak kalması için tırnak içine alın.',
+  'clusters.chartValues.error.unsafeInteger':
+    '{path} konumundaki tam sayı tam olarak taşınabilecek aralığın dışında — YAML okunurken zaten yuvarlandı, dolayısıyla farklı bir değer gönderilirdi. Rakamları korumak için tırnak içine alın.',
+  'clusters.chartValues.error.notMapping':
+    'Chart values bir YAML anahtar eşlemesi olmalıdır; tek bir değer veya liste olamaz.',
+  'clusters.edit.registration.changed.tip':
+    'Bir işçi düğüm kaydolurken uygulanan ayarları değiştirdiniz. Değişikliklerin etkili olması için kayıt komutunu hedef kümede yeniden çalıştırın.',
   'clusters.addworker.containerName': 'İşçi Düğüm Konteyner Adı',
   'clusters.addworker.containerName.tips':
     'İşçi düğüm konteyneri için bir ad belirtin.',
@@ -128,7 +148,7 @@ export default {
   'clusters.table.ip.internal': 'Dahili',
   'clusters.table.ip.external': 'Harici',
   'clusters.form.serverUrl.tips':
-    "İşçi düğüm GPUStack Sunucusuna doğrudan erişemiyorsa, harici olarak erişilebilir bir GPUStack hizmet URL'si belirtin.",
+    "İşçi düğüm GPUStack Sunucusuna doğrudan erişemiyorsa, harici olarak erişilebilir bir GPUStack hizmet URL'si belirtin. Örneğin: {example}",
   'clusters.form.setDefault': 'Varsayılan Olarak Ayarla',
   'clusters.form.setDefault.tips': 'Dağıtım için varsayılan.',
   'clusters.addworker.noClusters': 'Kullanılabilir Docker kümesi bulunamadı',
@@ -148,56 +168,69 @@ export default {
     'T-Head PPU, cihaz enjeksiyonu için Container Device Interface (CDI) kullanır ve CDI oluşturma için <span class="bold-text">/var/run/cdi</span> dizininin kullanılabilir olmasını gerektirir.',
   'clusters.addworker.nvidiaNotes':
     'GPUStack\'teki yerleşik çıkarım altyapıları <span class="bold-text">CUDA 12.8+</span> gerektirir. Lütfen NVIDIA sürücü sürümünüzün <span class="bold-text">570</span> veya daha yeni olduğundan emin olun.',
-  'clusters.volume.title': 'Volume Mounts',
-  'clusters.volume.name': 'Volume Name',
-  'clusters.volume.mountPath': 'Container Path',
-  'clusters.volume.mountPath.format': 'Path must start with /',
-  'clusters.volume.readOnly': 'Read Only',
-  'clusters.volume.sourceType': 'Source Type',
-  'clusters.volume.sourceType.hostPath': 'Host Path',
-  'clusters.volume.sourceType.pvc': 'Persistent Volume Claim (PVC)',
+  'clusters.volume.title': 'Birim Bağlamaları',
+  'clusters.volume.name': 'Birim Adı',
+  'clusters.volume.mountPath': 'Konteyner Yolu',
+  'clusters.volume.mountPath.format': 'Yol / ile başlamalıdır',
+  'clusters.volume.readOnly': 'Salt Okunur',
+  'clusters.volume.sourceType': 'Kaynak Türü',
+  'clusters.volume.sourceType.hostPath': 'Ana Bilgisayar Yolu',
+  'clusters.volume.sourceType.pvc': 'Kalıcı Birim Talebi (PVC)',
   'clusters.volume.sourceType.configMap': 'ConfigMap',
-  'clusters.volume.hostPath.path': 'Host Path',
-  'clusters.volume.hostPath.type': 'Path Type',
-  'clusters.volume.hostPath.type.directory': 'Directory',
-  'clusters.volume.hostPath.type.directoryOrCreate':
-    'Directory (create if not exists)',
-  'clusters.volume.hostPath.type.file': 'File',
-  'clusters.volume.hostPath.type.fileOrCreate': 'File (create if not exists)',
-  'clusters.volume.hostPath.type.socket': 'Socket',
-  'clusters.volume.hostPath.type.charDevice': 'Character Device',
-  'clusters.volume.hostPath.type.blockDevice': 'Block Device',
-  'clusters.volume.pvc.claimName': 'PVC Name',
-  'clusters.volume.pvc.readOnly': 'Read Only',
-  'clusters.volume.configMap.name': 'ConfigMap Name',
-  'clusters.volume.configMap.optional': 'Optional',
-  'clusters.volume.add': 'Add Volume Mount',
-  'clusters.systemDefaultContainerRegistry.title': 'Default Container Registry',
+  'clusters.volume.hostPath.path': 'Ana Bilgisayar Yolu',
+  'clusters.volume.hostPath.type': 'Yol Türü',
+  'clusters.volume.hostPath.type.directory': 'Dizin',
+  'clusters.volume.hostPath.type.directoryOrCreate': 'Dizin (yoksa oluştur)',
+  'clusters.volume.hostPath.type.file': 'Dosya',
+  'clusters.volume.hostPath.type.fileOrCreate': 'Dosya (yoksa oluştur)',
+  'clusters.volume.hostPath.type.socket': 'Soket',
+  'clusters.volume.hostPath.type.charDevice': 'Karakter Aygıtı',
+  'clusters.volume.hostPath.type.blockDevice': 'Blok Aygıtı',
+  'clusters.volume.pvc.claimName': 'PVC Adı',
+  'clusters.volume.pvc.readOnly': 'Salt Okunur',
+  'clusters.volume.configMap.name': 'ConfigMap Adı',
+  'clusters.volume.configMap.optional': 'İsteğe bağlı',
+  'clusters.volume.add': 'Birim Bağlaması Ekle',
+  'clusters.systemDefaultContainerRegistry.title':
+    'Varsayılan Konteyner Kayıt Defteri',
   'clusters.systemDefaultContainerRegistry.tip':
-    'Default registry used to resolve GPUStack images for this cluster. Falls back to the server default when unset.',
-  'clusters.k8sOptions.title': 'Kubernetes Deployment Options',
-  'clusters.imageCredentials.title': 'Image Credentials',
-  'clusters.imageCredentials.add': 'Add Credential',
-  'clusters.imageCredentials.registry': 'Registry',
-  'clusters.imageCredentials.username': 'Username',
-  'clusters.imageCredentials.password': 'Password',
-  'clusters.nodeSelector.title': 'Node Selector',
+    'Bu küme için GPUStack imajlarının çözümlenmesinde kullanılan varsayılan kayıt defteri. Ayarlanmadığında sunucu varsayılanına döner.',
+  'clusters.systemDefaultContainerRegistry.dockerHubUnreachable':
+    '{provider} örnekleri Docker Hub’a erişemez. Bir ayna veya özel kayıt defteri kullanın.',
+  'clusters.k8sOptions.title': 'Kubernetes Dağıtım Seçenekleri',
+  'clusters.imageCredentials.title': 'İmaj Kimlik Bilgileri',
+  'clusters.imageCredentials.add': 'Kimlik Bilgisi Ekle',
+  'clusters.imageCredentials.registry': 'Kayıt Defteri',
+  'clusters.imageCredentials.username': 'Kullanıcı adı',
+  'clusters.imageCredentials.password': 'Şifre',
+  'clusters.nodeSelector.title': 'Düğüm Seçici',
   'clusters.nodeSelector.tip':
-    'Pod nodeSelector applied to every worker DaemonSet — only nodes whose labels match are eligible to run the worker.',
-  'clusters.operatorImage.title': 'Operator Image',
+    "Her işçi düğüm DaemonSet'ine uygulanan pod nodeSelector değeri — yalnızca etiketleri eşleşen düğümler işçi düğümü çalıştırmaya uygundur.",
+  'clusters.operatorImage.title': 'Operatör İmajı',
   'clusters.operatorImage.tip':
-    'Override for the GPUStack Operator container image. Leave empty to use the server default.',
+    'GPUStack Operatör konteyner imajı için geçersiz kılma. Sunucu varsayılanını kullanmak için boş bırakın.',
   'clusters.namespace.title': 'Namespace',
   'clusters.namespace.tip':
-    'Kubernetes namespace the cluster’s manifests render into. Leave empty to use gpustack-system.',
-  'clusters.clusterType.title': 'Cluster Type',
-  'clusters.modelService.title': 'Model Service',
+    'Kümenin bildirimlerinin oluşturulacağı Kubernetes ad alanı. gpustack-system kullanmak için boş bırakın.',
+  'clusters.clusterType.title': 'Küme Türü',
+  'clusters.modelService.title': 'Model Hizmeti',
   'clusters.modelService.tip':
-    'For LLM inference and API serving — e.g. exposing model APIs and token-based services.',
-  'clusters.gpuInstances.title': 'GPU Service',
+    "LLM çıkarımı ve API sunumu için — örneğin model API'lerini ve token tabanlı hizmetleri yayınlamak.",
+  'clusters.gpuInstances.title': 'GPU Hizmeti',
   'clusters.gpuInstances.tip':
-    'For on-demand GPU compute — e.g. interactive development, training jobs, or custom environments.',
-  'clusters.gpuInstances.staticAddress': 'GPU Service Static Access Address',
+    'İstek üzerine GPU işlem gücü için — örneğin etkileşimli geliştirme, eğitim işleri veya özel ortamlar.',
+  'clusters.gpuInstances.staticAddress': 'GPU Hizmeti Statik Erişim Adresi',
   'clusters.gpuInstances.staticAddress.tip':
-    'Static address the operator uses to access GPU instances in this cluster (e.g. a LoadBalancer VIP). Optional.'
+    "Operatörün bu kümedeki GPU örneklerine erişmek için kullandığı statik adres (örneğin bir LoadBalancer VIP'si). Operatör varsayılanı: boş — erişim adresi ana bilgisayar IP'lerinden üretilir. Bunu değiştirmek, halihazırda dağıtılmış GPU örneklerinin adresini yeniden atamaz; yalnızca yeni oluşturulanlara uygulanır.",
+  'clusters.gpuInstances.derivedFromNode': 'Örnek Türlerini Düğümlerden Türet',
+  'clusters.gpuInstances.derivedFromNode.tip':
+    'Operatörün örnek türlerini (ve bunları besleyen kuyrukları) düğüm donanımından otomatik türetip türetmeyeceği. Etkin: operatör her düğüm çeşidi için türetilmiş bir örnek türü oluşturur. Devre dışı: yalnızca kaynak çeşidini hizalar ve her örnek türünü siz tanımlarsınız. Operatör varsayılanı: Etkin.',
+  'clusters.gpuInstances.mixedOnNode':
+    'Bir Düğümde Karışık Örnek Türlerine İzin Ver',
+  'clusters.gpuInstances.mixedOnNode.tip':
+    "Bir düğümün hem hızlandırıcılı hem de yalnızca CPU'lu bir örnek türüne hizmet verip veremeyeceği. Etkin: düğüm, hizmet verebildiği her tür altında özetlenir. Devre dışı: hızlandırıcısı olan bir düğüm yalnızca hızlandırıcılı bir tür, yalnızca CPU'lu bir düğüm ise yalnızca genel bir tür üretir. Operatör varsayılanı: Etkin.",
+  'clusters.gpuInstances.setting.enabled': 'Etkin',
+  'clusters.gpuInstances.setting.disabled': 'Devre dışı',
+  'clusters.gpuInstances.setting.unmanaged':
+    'Yönetilmiyor (küme kendi değerini korur)'
 };

@@ -79,7 +79,21 @@ export interface GpuInstanceOptions {
   // The mere presence of `gpuInstanceOptions` on `k8s_options` signals
   // "GPU instances enabled" for the cluster — absence opts the cluster out,
   // so there's no separate boolean flag on the wire.
+  //
+  // Every knob mirrors a GPUStack Operator setting of the same name and is
+  // tri-state: absent (or `null`) means GPUStack does not manage that setting
+  // and the cluster keeps its own value — a different instruction from an
+  // explicit `false`. The backend drops nulls when persisting, so `null` is
+  // how the form says "not managed".
+  //
+  // Keeps its legacy name — renaming it to the operator's
+  // `instance-access-static-address` would break the payload for every
+  // existing client, so the mismatch stays confined to this one field.
   gpuInstancesAccessStaticAddress?: string | null;
+  // Operator `instance-type-derived-from-node` (operator default: true).
+  gpuInstanceTypeDerivedFromNode?: boolean | null;
+  // Operator `instance-type-mixed-on-node` (operator default: true).
+  gpuInstanceTypeMixedOnNode?: boolean | null;
 }
 
 export interface K8sOptions {
@@ -100,6 +114,13 @@ export interface K8sOptions {
   // Kubernetes namespace the cluster's manifests render into. Falls back to
   // `gpustack-system` at render time when unset.
   namespace?: string | null;
+  // Raw GPUStack Helm chart values, keyed exactly as the chart keys them and
+  // passed through untranslated — the escape hatch for anything the chart and
+  // its subcharts expose that has no dedicated option here. Merged key-by-key
+  // over the values the server derives, so the other options still apply
+  // underneath. Arbitrarily nested; `null` means "not set" (never send `{}`,
+  // which persists as an empty object).
+  helmValues?: Record<string, any> | null;
 }
 
 export interface ClusterListItem {
@@ -112,6 +133,9 @@ export interface ClusterListItem {
   // a top-level column on the backend (image resolution / registration token
   // read it directly). Falls back to the server default when unset.
   system_default_container_registry?: string | null;
+  // Externally reachable GPUStack Server URL the workers register against.
+  // Unset means the platform's `server_external_url` is used instead.
+  server_url?: string | null;
   provider: ProviderType;
   credential_id: number;
   created_at: string;
@@ -139,7 +163,9 @@ export interface ClusterFormData {
   credential_id: number;
   zone: string;
   region: string;
-  server_url?: string;
+  // Empty means "follow the platform's external URL" — the field normalizes a
+  // cleared input to null so an edit can drop a previously set override.
+  server_url?: string | null;
   worker_config?: Record<string, any>;
   system_default_container_registry?: string | null;
   worker_pools?: NodePoolFormData[];
@@ -153,4 +179,6 @@ export interface SystemConfig {
   server_external_url: string | null;
   system_default_container_registry: string | null;
   showMonitoring?: boolean;
+  // Platform-wide business timezone (IANA name) resolved from GPUSTACK_TIMEZONE.
+  timezone?: string;
 }
