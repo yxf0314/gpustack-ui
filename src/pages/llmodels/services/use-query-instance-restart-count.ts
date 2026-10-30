@@ -1,13 +1,11 @@
-import { useQueryData } from '@/hooks/use-query-data-list';
 import { useIntl } from '@umijs/max';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { queryModelInstanceRestartCount } from '../apis';
-import { InstanceRestartCount } from '../config/types';
 
 export interface RestartOption {
   value: string;
   label: string;
-  start_at: string;
+  start_at: string | null;
   previous: boolean;
   worker_id: number;
   container: string;
@@ -20,23 +18,26 @@ interface RestartCountOption {
   worker_id: number;
   name: string;
   container: string;
-  start_at: string;
+  start_at: string | null;
   isParent: boolean;
   isMain: boolean;
   children?: RestartOption[];
 }
 
 export default function useQueryModelInstanceRestartCount() {
-  const { detailData, loading, cancelRequest, fetchData } =
-    useQueryData<InstanceRestartCount>({
-      fetchDetail: queryModelInstanceRestartCount,
-      key: 'modelInstanceRestartCount'
-    });
+  const requestRef = useRef<AbortController | null>(null);
+  const cancelRequest = () => requestRef.current?.abort();
   const intl = useIntl();
   const [dataList, setDataList] = useState<RestartCountOption[]>([]);
 
   const fetchRestartCount = async (instance_id: number) => {
-    const res = await fetchData(instance_id);
+    cancelRequest();
+    const controller = new AbortController();
+    requestRef.current = controller;
+    const res = await queryModelInstanceRestartCount(instance_id, {
+      signal: controller.signal
+    });
+    if (controller.signal.aborted) return [];
 
     const list =
       res.workers?.flatMap((worker) => {
@@ -80,13 +81,11 @@ export default function useQueryModelInstanceRestartCount() {
         return Array.from(containerMap.values());
       }) || [];
 
-    console.log('restart count list: ', list);
     setDataList(list);
     return list;
   };
   return {
     countOptions: dataList,
-    loading,
     cancelRequest,
     fetchData: fetchRestartCount
   };
