@@ -12,12 +12,7 @@
 .timeline {
   position: relative;
   --timeline-inset: calc(var(--ant-padding-xs) + 1px);
-  --tree-step: 12px;
-  --tree-row-gap: 8px;
-  --tree-line-inset: calc(var(--timeline-inset) + var(--tree-row-gap) / 2);
-  --tree-elbow: calc(
-    var(--tree-line-inset) + var(--ant-font-size) * var(--ant-line-height) / 2
-  );
+  --timeline-track-width: 58%;
 }
 
 .timeAxis {
@@ -50,7 +45,7 @@
 
 .guides {
   position: relative;
-  width: 58%;
+  width: var(--timeline-track-width);
   height: 100%;
   margin-inline-start: auto;
 
@@ -59,21 +54,17 @@
     inset-block: 0;
     border-inline-start: 1px dashed var(--ant-color-border);
   }
-
-  > .spanMarker {
-    border-inline-start: 1px solid var(--ant-color-info);
-  }
 }
 
 @media (max-width: 600px) {
+  .timeline {
+    --timeline-track-width: 50%;
+  }
+
   .tick:nth-child(2),
   .tick:nth-child(4) {
     display: none;
   }
-}
-
-.spanRows {
-  gap: var(--tree-row-gap);
 }
 
 .spanText,
@@ -90,35 +81,27 @@
   }
 }
 
-.spanTree {
+.spanIndent {
   position: relative;
   flex-shrink: 0;
-  pointer-events: none;
-}
 
-.treeLine {
-  position: absolute;
-  inset-inline-end: 0;
-  inset-block: calc(-1 * var(--tree-line-inset));
-  border-inline-start: 1px solid var(--ant-color-text-quaternary);
-
-  &[data-last='true'] {
-    inset-block-end: auto;
-    block-size: var(--tree-elbow);
-  }
-
-  &[data-elbow='true']::after {
+  &::after {
     content: '';
     position: absolute;
-    inset-inline: 0 2px;
-    inset-block-start: var(--tree-elbow);
-    border-block-start: 1px solid var(--ant-color-text-quaternary);
+    inset-inline-end: 4px;
+    inset-block-start: calc(
+      var(--ant-font-size) * var(--ant-line-height) / 2 - 7px
+    );
+    inline-size: 11px;
+    block-size: 7px;
+    border-inline-start: 1px solid var(--ant-color-text-quaternary);
+    border-block-end: 1px solid var(--ant-color-text-quaternary);
   }
 }
 
 .track {
   position: relative;
-  width: 58%;
+  width: var(--timeline-track-width);
   min-height: 1rem;
   flex-shrink: 0;
 }
@@ -128,9 +111,6 @@
 }
 
 .bar {
-  --fade-start: #000;
-  --fade-end: #000;
-  --fade-width: min(8px, 50%);
   position: absolute;
   z-index: 2;
   inset-block-start: 0;
@@ -138,29 +118,6 @@
   min-width: 2px;
   border-radius: var(--ant-border-radius-sm);
   background: var(--ant-color-text-quaternary);
-
-  &[data-clipped-start='true'] {
-    --fade-start: transparent;
-    border-start-start-radius: 0;
-    border-end-start-radius: 0;
-  }
-
-  &[data-clipped-end='true'] {
-    --fade-end: transparent;
-    border-start-end-radius: 0;
-    border-end-end-radius: 0;
-  }
-
-  &[data-clipped-start='true'],
-  &[data-clipped-end='true'] {
-    mask-image: linear-gradient(
-      to right,
-      var(--fade-start),
-      #000 var(--fade-width),
-      #000 calc(100% - var(--fade-width)),
-      var(--fade-end)
-    );
-  }
 
   &[data-role='gateway'] {
     background: var(--ant-color-info);
@@ -175,10 +132,20 @@
   }
 }
 
-.stat {
-  height: 100%;
+.requestCards :global(.ant-descriptions-item-content) {
+  overflow-wrap: anywhere;
 }
 
-.engineAttributes {
-  margin-block-start: var(--ant-margin);
+.identifier {
+  min-width: 0;
+}
+
+.spanPopover {
+  inline-size: min(360px, calc(100vw - 32px));
+}
+
+.spanPopoverContent {
+  max-block-size: min(380px, calc(100dvh - 80px));
+  overflow-y: auto;
+  overflow-wrap: anywhere;
 }

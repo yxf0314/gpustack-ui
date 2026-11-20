@@ -5,9 +5,8 @@ import {
   isRequestId,
   isTraceIdentifier,
   logTimeWindow,
-  spanTimelineRows,
-  spanTimelineSegment,
-  spanTimelineWindow
+  spanTimelineDuration,
+  spanTimelineRows
 } from '../presentation';
 
 const requestId = 'a0000000-0000-4000-8000-000000000001';
@@ -82,55 +81,27 @@ test('overlapping Prefill and Decode spans stay grouped under the recorded paren
   ];
 
   assert.deepEqual(
-    spanTimelineRows(spans).map(({ span, branches }) => [span.id, branches]),
+    spanTimelineRows(spans).map(({ span, depth }) => [span.id, depth]),
     [
-      ['gateway', []],
-      ['upstream', [false]],
-      ['worker', [false, false]],
-      ['router', [false, false, false]],
-      ['prefill-call', [false, false, false, true]],
-      ['prefill-engine', [false, false, false, true, false]],
-      ['decode-call', [false, false, false, false]],
-      ['decode-engine', [false, false, false, false, false]],
-      ['orphan', []]
+      ['gateway', 0],
+      ['upstream', 1],
+      ['worker', 2],
+      ['router', 3],
+      ['prefill-call', 4],
+      ['prefill-engine', 5],
+      ['decode-call', 4],
+      ['decode-engine', 5],
+      ['orphan', 0]
     ]
   );
 });
 
-test('focused timeline fits the selected span and clips other bars to the same scale', () => {
+test('the static timeline covers the latest recorded end, including spans that outlive their parent', () => {
   const parent = { start_offset_ms: 0, duration_ms: 200 };
-  const selected = { start_offset_ms: 20, duration_ms: 40 };
-  const point = { start_offset_ms: 60, duration_ms: 0 };
-  const spans = [parent, selected, point];
-  const full = spanTimelineWindow(spans);
-  const window = spanTimelineWindow(spans, selected);
-  assert.deepEqual(full, { start: 0, end: 200 });
-  assert.deepEqual(window, { start: 20, end: 60 });
-  assert.deepEqual(spanTimelineWindow(spans, point), full);
-  assert.deepEqual(spanTimelineSegment(selected, window), {
-    offset: 0,
-    width: 100,
-    clippedStart: false,
-    clippedEnd: false
-  });
-  assert.deepEqual(spanTimelineSegment(parent, window), {
-    offset: 0,
-    width: 100,
-    clippedStart: true,
-    clippedEnd: true
-  });
-  assert.deepEqual(
-    spanTimelineSegment({ start_offset_ms: 40, duration_ms: 30 }, window),
-    { offset: 50, width: 50, clippedStart: false, clippedEnd: true }
-  );
+  const child = { start_offset_ms: 20, duration_ms: 220 };
+  assert.equal(spanTimelineDuration([child, parent]), 240);
   assert.equal(
-    spanTimelineSegment({ start_offset_ms: 60, duration_ms: 20 }, window),
-    undefined
+    spanTimelineDuration([{ start_offset_ms: 0, duration_ms: 0 }]),
+    1
   );
-  assert.deepEqual(spanTimelineSegment(point, window), {
-    offset: 100,
-    width: 0,
-    clippedStart: false,
-    clippedEnd: false
-  });
 });
