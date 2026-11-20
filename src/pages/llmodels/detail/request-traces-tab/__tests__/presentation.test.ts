@@ -4,7 +4,9 @@ import {
   grafanaExploreLink,
   isRequestId,
   isTraceIdentifier,
-  logTimeWindow
+  logTimeWindow,
+  spanTimelineRows,
+  timelineStartWindow
 } from '../presentation';
 
 const requestId = 'a0000000-0000-4000-8000-000000000001';
@@ -63,4 +65,47 @@ test('trace search requires the full identifier and log search accepts only the 
   assert.equal(isTraceIdentifier('A'.repeat(32)), true);
   assert.equal(isRequestId('A'.repeat(32)), false);
   assert.equal(isTraceIdentifier(requestId.slice(0, 12)), false);
+});
+
+test('overlapping Prefill and Decode spans stay grouped under the recorded parents', () => {
+  const spans = [
+    { id: 'gateway', parent_id: null },
+    { id: 'upstream', parent_id: 'gateway' },
+    { id: 'worker', parent_id: 'upstream' },
+    { id: 'router', parent_id: 'worker' },
+    { id: 'prefill-call', parent_id: 'router' },
+    { id: 'decode-call', parent_id: 'router' },
+    { id: 'prefill-engine', parent_id: 'prefill-call' },
+    { id: 'decode-engine', parent_id: 'decode-call' },
+    { id: 'orphan', parent_id: 'not-retained' }
+  ];
+
+  assert.deepEqual(
+    spanTimelineRows(spans).map(({ span, depth }) => [span.id, depth]),
+    [
+      ['gateway', 0],
+      ['upstream', 1],
+      ['worker', 2],
+      ['router', 3],
+      ['prefill-call', 4],
+      ['prefill-engine', 5],
+      ['decode-call', 4],
+      ['decode-engine', 5],
+      ['orphan', 0]
+    ]
+  );
+});
+
+test('the start zoom fits clustered early offsets even when a later span starts far away', () => {
+  const offsets = [0, 7.167, 8.445, 11.541, 11.81, 13.091, 35.215, 36.449];
+  const spans = [...offsets, 54_000].map((start_offset_ms) => ({
+    start_offset_ms
+  }));
+  const window = timelineStartWindow(spans, 59_279.74);
+  assert.ok(window && 36.449 < window && window < 50);
+  assert.equal(
+    timelineStartWindow([{ start_offset_ms: 500 }], 1_000),
+    undefined
+  );
+  assert.equal(timelineStartWindow([{ start_offset_ms: 0 }], 1_000), undefined);
 });

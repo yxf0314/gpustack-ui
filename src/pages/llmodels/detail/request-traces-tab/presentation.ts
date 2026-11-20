@@ -2,6 +2,7 @@ import { QUICK_TIME_RANGES } from '../config';
 import type {
   TraceCapabilities,
   TraceRecord,
+  TraceSpan,
   TraceTimeRange
 } from './requests';
 
@@ -31,6 +32,51 @@ export const formatTraceDate = (timestamp: number, locale?: string) =>
     dateStyle: 'short',
     timeStyle: 'medium'
   }).format(timestamp);
+
+export function spanTimelineRows<T extends Pick<TraceSpan, 'id' | 'parent_id'>>(
+  spans: T[]
+) {
+  const ids = new Set(spans.map(({ id }) => id));
+  const children = new Map<string | null, T[]>();
+  for (const span of spans) {
+    const parent =
+      span.parent_id && ids.has(span.parent_id) ? span.parent_id : null;
+    const siblings = children.get(parent);
+    if (siblings) {
+      siblings.push(span);
+    } else {
+      children.set(parent, [span]);
+    }
+  }
+
+  const ordered: { span: T; depth: number }[] = [];
+  const visited = new Set<string>();
+  const visit = (span: T, depth: number) => {
+    if (visited.has(span.id)) return;
+    visited.add(span.id);
+    ordered.push({ span, depth });
+    for (const child of children.get(span.id) ?? []) {
+      visit(child, depth + 1);
+    }
+  };
+  for (const span of children.get(null) ?? []) visit(span, 0);
+  for (const span of spans) visit(span, 0);
+  return ordered;
+}
+
+export function timelineStartWindow(
+  spans: Pick<TraceSpan, 'start_offset_ms'>[],
+  fullWindow: number
+) {
+  const latestEarlyStart = Math.max(
+    0,
+    ...spans
+      .map(({ start_offset_ms }) => start_offset_ms)
+      .filter((start) => start <= fullWindow / 10)
+  );
+  const zoomEnd = Math.max(1, Math.ceil(latestEarlyStart * 1.2));
+  return latestEarlyStart > 0 && zoomEnd < fullWindow ? zoomEnd : undefined;
+}
 
 export interface LogTarget {
   requestId: string;

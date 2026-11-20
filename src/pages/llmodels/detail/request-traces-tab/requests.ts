@@ -57,6 +57,7 @@ export interface TraceSpan {
   service: string;
   reported_service?: string | null;
   role: 'gateway' | 'proxy' | 'engine' | 'other';
+  phase?: 'prefill' | 'decode' | null;
   start_offset_ms: number;
   duration_ms: number;
   status: string;

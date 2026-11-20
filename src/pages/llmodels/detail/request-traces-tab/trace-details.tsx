@@ -17,13 +17,16 @@ import {
   formatTraceDate,
   formatTraceValue,
   logRequestWindow,
+  spanTimelineRows,
+  timelineStartWindow,
   type LogTarget,
   type TraceMessage
 } from './presentation';
-import type { TraceDetail, TraceRecord, TraceSpan } from './requests';
+import type { TraceDetail, TraceRecord } from './requests';
 import styles from './trace-details.module.less';
 
 const timeTicks = [0, 25, 50, 75, 100];
+const phaseLabels = { prefill: 'Prefill', decode: 'Decode' } as const;
 
 const statusTone = {
   success: 'success',
@@ -58,30 +61,37 @@ const SpanTimeline = ({
 }) => {
   const { spans, span_count: count } = detail;
   const [selectedId, setSelectedId] = useState(spans[0]?.id);
+  const [zoomToStart, setZoomToStart] = useState(false);
   const selected = spans.find((span) => span.id === selectedId) ?? spans[0];
-  const longest = Math.max(
+  const fullWindow = Math.max(
     1,
     ...spans.map((span) => span.start_offset_ms + span.duration_ms)
   );
-  const byId = new Map(spans.map((span) => [span.id, span]));
-  const depth = (span: TraceSpan) => {
-    let level = 0;
-    let parent = span.parent_id;
-    while (parent && byId.has(parent) && level < 3) {
-      level += 1;
-      parent = byId.get(parent)?.parent_id ?? null;
-    }
-    return level;
-  };
+  const startWindow = timelineStartWindow(spans, fullWindow);
+  const visibleEnd = (zoomToStart && startWindow) || fullWindow;
+  const position = (time: number) => `${(time / visibleEnd) * 100}%`;
+  const selectedMarkers = selected
+    ? new Set([
+        selected.start_offset_ms,
+        selected.start_offset_ms + selected.duration_ms
+      ])
+    : new Set<number>();
 
   return (
     <Flex vertical gap={12}>
       {!detail.request.has_engine && (
         <Alert type="info" showIcon title={t('missingEngine')} />
       )}
-      <Typography.Title level={5}>
-        {t('spanTimeline', { count })}
-      </Typography.Title>
+      <Flex justify="space-between" align="center" gap={8}>
+        <Typography.Title level={5} style={{ margin: 0 }}>
+          {t('spanTimeline', { count })}
+        </Typography.Title>
+        {startWindow && (
+          <Button size="small" onClick={() => setZoomToStart(!zoomToStart)}>
+            {t(zoomToStart ? 'fullTimeline' : 'zoomStarts')}
+          </Button>
+        )}
+      </Flex>
       {spans.length < count && (
         <Typography.Text type="secondary">
           {t('spanLimit', { count: spans.length })}
@@ -97,7 +107,7 @@ const SpanTimeline = ({
                 className={styles.tick}
                 style={{ insetInlineStart: `${tick}%` }}
               >
-                {formatTraceValue((longest * tick) / 100, 'ms')}
+                {formatTraceValue((visibleEnd * tick) / 100, 'ms')}
               </Typography.Text>
             ))}
           </div>
@@ -107,46 +117,72 @@ const SpanTimeline = ({
             {timeTicks.map((tick) => (
               <span key={tick} style={{ insetInlineStart: `${tick}%` }} />
             ))}
+            {[...selectedMarkers]
+              .filter((time) => time <= visibleEnd)
+              .map((time) => (
+                <span
+                  key={time}
+                  className={styles.spanMarker}
+                  style={{ insetInlineStart: position(time) }}
+                />
+              ))}
           </div>
         </div>
         <Flex vertical gap={8}>
-          {spans.map((span) => (
-            <Button
-              key={span.id}
-              aria-pressed={selected?.id === span.id}
-              type={selected?.id === span.id ? 'default' : 'text'}
-              className={styles.spanButton}
-              title={span.name || undefined}
-              onClick={() => setSelectedId(span.id)}
-            >
-              <Flex align="center" gap={8} className={styles.spanContent}>
-                <Flex
-                  vertical
-                  align="start"
-                  className={styles.spanLabel}
-                  style={{ paddingInlineStart: depth(span) * 8 }}
-                >
-                  <Typography.Text ellipsis>
-                    {depth(span) ? '↳ ' : ''}
-                    {span.service || '—'}
-                  </Typography.Text>
-                  <Typography.Text type="secondary" ellipsis>
-                    {formatTraceValue(span.duration_ms, 'ms')}
-                  </Typography.Text>
+          {spanTimelineRows(spans).map(({ span, depth }) => {
+            const end = span.start_offset_ms + span.duration_ms;
+            const startLabel = formatTraceValue(span.start_offset_ms, 'ms');
+            return (
+              <Button
+                key={span.id}
+                aria-pressed={selected?.id === span.id}
+                type={selected?.id === span.id ? 'default' : 'text'}
+                className={styles.spanButton}
+                title={[
+                  span.name,
+                  `${t('spanStart')} ${startLabel}`,
+                  `${t('spanEnd')} ${formatTraceValue(end, 'ms')}`
+                ]
+                  .filter(Boolean)
+                  .join('\n')}
+                onClick={() => setSelectedId(span.id)}
+              >
+                <Flex align="center" gap={8} className={styles.spanContent}>
+                  <Flex
+                    vertical
+                    align="start"
+                    className={styles.spanLabel}
+                    style={{ paddingInlineStart: `min(${depth * 8}px, 20%)` }}
+                  >
+                    <Typography.Text ellipsis>
+                      {depth ? '↳ ' : ''}
+                      {span.service || '—'}
+                      {span.phase ? ` · ${phaseLabels[span.phase]}` : ''}
+                    </Typography.Text>
+                    <Typography.Text type="secondary" ellipsis>
+                      {span.start_offset_ms > 0 ? `+${startLabel} · ` : ''}
+                      {formatTraceValue(span.duration_ms, 'ms')}
+                    </Typography.Text>
+                  </Flex>
+                  <div className={`${styles.track} ${styles.spanTrack}`}>
+                    {span.start_offset_ms <= visibleEnd && (
+                      <span
+                        className={styles.bar}
+                        data-role={span.role}
+                        data-continues={end > visibleEnd || undefined}
+                        style={{
+                          insetInlineStart: position(span.start_offset_ms),
+                          width: position(
+                            Math.min(end, visibleEnd) - span.start_offset_ms
+                          )
+                        }}
+                      />
+                    )}
+                  </div>
                 </Flex>
-                <div className={styles.track}>
-                  <span
-                    className={styles.bar}
-                    data-role={span.role}
-                    style={{
-                      insetInlineStart: `${(span.start_offset_ms / longest) * 100}%`,
-                      width: `${(span.duration_ms / longest) * 100}%`
-                    }}
-                  />
-                </div>
-              </Flex>
-            </Button>
-          ))}
+              </Button>
+            );
+          })}
         </Flex>
       </div>
       {selected && (
@@ -171,12 +207,9 @@ const SpanTimeline = ({
                 label: 'parent.span.id',
                 children: selected.parent_id ?? '—'
               },
-              {
-                key: 'status',
-                label: 'status',
-                children:
-                  selected.status === 'unset' ? t('unset') : selected.status
-              },
+              ...(selected.status === 'error'
+                ? [{ key: 'status', label: 'status', children: t('spanError') }]
+                : []),
               {
                 key: 'start',
                 label: t('spanStart'),

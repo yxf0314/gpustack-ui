@@ -53,6 +53,10 @@
     inset-block: 0;
     border-inline-start: 1px dashed var(--ant-color-border);
   }
+
+  > .spanMarker {
+    border-inline-start: 1px solid var(--ant-color-info);
+  }
 }
 
 @media (max-width: 600px) {
@@ -79,6 +83,10 @@
   flex-shrink: 0;
 }
 
+.spanTrack {
+  overflow: hidden;
+}
+
 .bar {
   position: absolute;
   z-index: 2;
@@ -87,6 +95,12 @@
   min-width: 2px;
   border-radius: var(--ant-border-radius-sm);
   background: var(--ant-color-text-quaternary);
+
+  &[data-continues='true'] {
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+    mask-image: linear-gradient(to right, #000 calc(100% - 8px), transparent);
+  }
 
   &[data-role='gateway'] {
     background: var(--ant-color-info);
