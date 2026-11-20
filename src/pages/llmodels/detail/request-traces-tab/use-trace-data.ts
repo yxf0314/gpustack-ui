@@ -9,10 +9,14 @@ import {
   type TraceCapabilities,
   type TraceDetail,
   type TraceFilters,
+  type TracePage,
   type TraceRecord
 } from './requests';
 
-export const defaultFilters: TraceFilters = { range: { window: '1h' } };
+export const defaultTraceWindow = '24h';
+export const defaultFilters: TraceFilters = {
+  range: { window: defaultTraceWindow }
+};
 
 function useSnapshot<T>(store: ScopedResource<T>) {
   return useSyncExternalStore(store.subscribe, () => store.snapshot);
@@ -21,7 +25,7 @@ function useSnapshot<T>(store: ScopedResource<T>) {
 export function useTraceData(modelId: number, tenant: string) {
   const [stores] = useState(() => ({
     capabilities: new ScopedResource<TraceCapabilities>(),
-    rows: new ScopedResource<TraceRecord[]>(),
+    rows: new ScopedResource<TracePage>(),
     detail: new ScopedResource<TraceDetail>()
   }));
   const capabilities = useSnapshot(stores.capabilities);
@@ -29,10 +33,10 @@ export function useTraceData(modelId: number, tenant: string) {
   const detail = useSnapshot(stores.detail);
   const isCurrent = useCallback(() => tenantKey() === tenant, [tenant]);
   const loadRows = useCallback(
-    (filters: TraceFilters) =>
+    (filters: TraceFilters, cursor?: string) =>
       stores.rows.load(
-        JSON.stringify(filters),
-        (signal) => getTraceRecords(modelId, filters, signal),
+        JSON.stringify([filters, cursor]),
+        (signal) => getTraceRecords(modelId, filters, signal, cursor),
         isCurrent
       ),
     [modelId, stores.rows, isCurrent]

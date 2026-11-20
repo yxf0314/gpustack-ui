@@ -1,6 +1,7 @@
 import TimeRangeControl from '@/pages/_components/monitoring/time-range-control';
 import { FALLBACK_MONITORING_CAPABILITIES, QUICK_TIME_RANGES } from '../config';
 import type { TraceTimeRange } from './requests';
+import { defaultTraceWindow } from './use-trace-data';
 
 const traceRangeCapabilities = {
   data: {
@@ -12,17 +13,19 @@ const traceRangeCapabilities = {
 };
 
 export default function TraceTimeRangeControl({
-  value = { window: '1h' },
+  value = { window: defaultTraceWindow },
   onChange,
   historyNote
 }: {
   value?: TraceTimeRange;
   onChange?: (range: TraceTimeRange) => void;
-  historyNote: string;
+  historyNote?: string;
 }) {
   return (
     <TimeRangeControl
-      scope={'start' in value ? { window: '1h', ...value } : value}
+      scope={
+        'start' in value ? { window: defaultTraceWindow, ...value } : value
+      }
       capabilities={traceRangeCapabilities}
       historyNote={historyNote}
       changeScope={({ window, start, end }) => {

@@ -314,7 +314,9 @@ export default function TraceDetails({
               {formatTraceDate(observation.started_at_ms, locale)}
             </Typography.Text>
             <Typography.Text type="secondary">
-              {t('instance')} · {instanceName(observation.instance_id)}
+              {t('instanceColumn')} ·{' '}
+              {observation.instance_name ??
+                instanceName(observation.instance_id)}
             </Typography.Text>
           </Flex>
           <TraceStats
@@ -337,8 +339,8 @@ export default function TraceDetails({
               ]
             ]}
           />
-          <Flex justify="end">
-            {logsEnabled && observation?.request_id ? (
+          {logsEnabled && observation.request_id && (
+            <Flex justify="end">
               <Button
                 onClick={() =>
                   onLogs(
@@ -351,12 +353,8 @@ export default function TraceDetails({
               >
                 {t('viewLogs')}
               </Button>
-            ) : (
-              <Typography.Text type="secondary">
-                {t(logsEnabled ? 'requestIdUnavailable' : 'logsOff')}
-              </Typography.Text>
-            )}
-          </Flex>
+            </Flex>
+          )}
           {state.loading && <Skeleton active />}
           {state.error != null && (
             <Alert

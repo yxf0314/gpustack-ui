@@ -40,9 +40,16 @@ export interface TraceRecord {
   outcome: TraceOutcome;
   stream: boolean | null;
   instance_id: number | null;
+  instance_name?: string | null;
   has_engine: boolean;
   engine: TraceEngineMetrics | null;
 }
+export interface TracePage {
+  items: TraceRecord[];
+  cursor: string;
+  next_cursor: string | null;
+}
+
 export interface TraceSpan {
   id: string;
   parent_id: string | null;
@@ -77,11 +84,12 @@ export const getTraceCapabilities = (modelId: number, signal: AbortSignal) =>
 export const getTraceRecords = (
   modelId: number,
   { range, ...filters }: TraceFilters,
-  signal: AbortSignal
+  signal: AbortSignal,
+  cursor?: string
 ) =>
-  request<TraceRecord[]>(tracePath(modelId), {
+  request<TracePage>(tracePath(modelId), {
     ...options(signal),
-    params: { ...filters, ...range }
+    params: { ...filters, ...range, page_size: 10, cursor }
   });
 
 export const getTraceDetail = (

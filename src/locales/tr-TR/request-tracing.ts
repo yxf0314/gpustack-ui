@@ -1,14 +1,9 @@
 export default {
   'requestTracing.title': 'Request Tracing',
-  'requestTracing.traceOn': 'Tracing enabled',
-  'requestTracing.traceOff': 'Tracing disabled',
-  'requestTracing.logsOn': 'Log collection enabled',
-  'requestTracing.logsOff': 'Log collection disabled',
-  'requestTracing.help': 'Collection settings',
   'requestTracing.bothOff': 'Tracing and log collection are disabled',
   'requestTracing.bothOffDetail':
     'Enable either source to investigate future requests.',
-  'requestTracing.configuration': 'View collection settings',
+  'requestTracing.configuration': 'Toplama belgelerini görüntüle',
   'requestTracing.traceQueryMissing':
     'Tracing is enabled. Configure the Tempo query endpoint to browse retained traces.',
   'requestTracing.lookupLogs': 'Find logs by Request ID',
@@ -17,7 +12,6 @@ export default {
   'requestTracing.viewLogs': 'View related logs',
   'requestTracing.logLinkMissing':
     'Use this query in Loki. Set a Grafana Loki data source UID to open it directly in Explore.',
-  'requestTracing.requestIdUnavailable': 'Request ID was not recorded',
   'requestTracing.identifier': 'Request identifier',
   'requestTracing.identifierPlaceholder': 'Enter a full Request ID or Trace ID',
   'requestTracing.requestIdPlaceholder': 'Enter a full Request ID',
@@ -32,13 +26,14 @@ export default {
   'requestTracing.cancelled': 'Disconnected',
   'requestTracing.unknown': 'Unknown',
   'requestTracing.instance': 'Model instance',
-  'requestTracing.instanceAndTrace': 'Instance / Trace',
+  'requestTracing.instanceColumn': 'Örnek',
   'requestTracing.allInstances': 'All instances',
   'requestTracing.search': 'Search',
   'requestTracing.noEngine': 'No engine span',
   'requestTracing.reset': 'Reset filters',
   'requestTracing.recentRecords': 'Recent retained requests',
-  'requestTracing.recentFirst': 'Newest first',
+  'requestTracing.previousPage': 'Önceki sayfa',
+  'requestTracing.nextPage': 'Sonraki sayfa',
   'requestTracing.refresh': 'Refresh requests',
   'requestTracing.requestTime': 'Request ID / Time',
   'requestTracing.endpoint': 'Endpoint',
@@ -66,13 +61,5 @@ export default {
   'requestTracing.noRecords': 'No matching retained requests',
   'requestTracing.traceNotFound': 'Retained trace not found',
   'requestTracing.queryFailed': 'Request tracing query failed',
-  'requestTracing.retry': 'Retry',
-  'requestTracing.sampleHelp':
-    'Shows a limited sample of retained traces. Open a request to inspect its spans and observed metrics.',
-  'requestTracing.traceHelp':
-    'Docker and Helm servers use built-in Tempo by default. Set GPUSTACK_TRACE_QUERY_URL or tracing.queryURL when using an external Tempo.',
-  'requestTracing.logHelp':
-    'Configure log export with GPUSTACK_LOG_OTLP_ENDPOINT or logging.endpoint. Request links use GPUSTACK_LOG_GRAFANA_DATASOURCE_UID or logging.grafanaDatasourceUID.',
-  'requestTracing.historyHelp':
-    'Disabling tracing stops the built-in Tempo. Data already stored externally remains subject to the external retention policy.'
+  'requestTracing.retry': 'Retry'
 };

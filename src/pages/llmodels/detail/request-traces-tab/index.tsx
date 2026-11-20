@@ -1,10 +1,6 @@
+import { getDocumentationUrl } from '@/utils/documentation';
 import { ReloadOutlined } from '@ant-design/icons';
-import {
-  AutoTooltip,
-  BaseSelect,
-  Table as SealTable,
-  StatusDot
-} from '@gpustack/core-ui';
+import { AutoTooltip, BaseSelect, Table as SealTable } from '@gpustack/core-ui';
 import { useIntl } from '@umijs/max';
 import {
   Alert,
@@ -40,7 +36,6 @@ import styles from './trace-filters.module.less';
 import TraceTimeRangeControl from './trace-time-range';
 import { defaultFilters, useTraceData } from './use-trace-data';
 
-const PAGE_SIZE = 10;
 const outcomes = ['success', 'error', 'cancelled', 'unknown'] as const;
 
 function LogLookup({
@@ -106,9 +101,9 @@ export default function RequestTracesTab({
     intl.formatMessage({ id: `requestTracing.${key}` }, values);
   const [filtersForm] = Form.useForm<TraceFilters>();
   const activeFilters = useRef(defaultFilters);
+  const pageCursors = useRef<string[]>([]);
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<TraceRecord | null>(null);
-  const [help, setHelp] = useState(false);
   const [logTarget, setLogTarget] = useState<LogTarget | null>(null);
   const trace = useTraceData(modelId, tenant);
   const capabilities = trace.capabilities.data;
@@ -125,7 +120,8 @@ export default function RequestTracesTab({
       ? '—'
       : (instanceOptions.find((instance) => instance.value === id)?.label ??
         `#${id}`);
-  const rows = trace.rows.data ?? [];
+  const rows = trace.rows.data?.items ?? [];
+  const nextCursor = trace.rows.data?.next_cursor;
   const filterRequestId = activeFilters.current.q;
 
   const closeDetails = () => {
@@ -134,14 +130,25 @@ export default function RequestTracesTab({
   };
   const apply = (values: TraceFilters) => {
     activeFilters.current = { ...values, q: values.q?.trim() || undefined };
+    pageCursors.current = [];
     setPage(1);
     closeDetails();
     void trace.loadRows(activeFilters.current);
   };
   const refresh = () => {
     closeDetails();
+    pageCursors.current = [];
     setPage(1);
     void trace.refresh(activeFilters.current);
+  };
+  const changePage = (nextPage: number) => {
+    const cursor =
+      nextPage > page ? nextCursor : pageCursors.current[nextPage - 1];
+    if (!cursor) return;
+    if (trace.rows.data) pageCursors.current[page - 1] = trace.rows.data.cursor;
+    closeDetails();
+    setPage(nextPage);
+    void trace.loadRows(activeFilters.current, cursor);
   };
   const openDetails = (row: TraceRecord) => {
     setSelected(row);
@@ -223,45 +230,33 @@ export default function RequestTracesTab({
     },
     {
       dataIndex: 'instance_id',
-      title: t('instanceAndTrace'),
+      title: t('instanceColumn'),
       minWidth: 137,
       render: (value: number | null, row: TraceRecord) => (
-        <Flex vertical gap={2}>
-          <AutoTooltip ghost>{instanceName(value)}</AutoTooltip>
-          {!row.has_engine && (
-            <Typography.Text type="secondary">{t('noEngine')}</Typography.Text>
-          )}
-        </Flex>
+        <AutoTooltip ghost>
+          {row.instance_name ?? instanceName(value)}
+        </AutoTooltip>
       )
     }
   ];
 
   const error = trace.capabilities.error ?? trace.rows.error;
   const loading = trace.capabilities.loading || trace.rows.loading;
+  const documentationLink = (
+    <Button
+      type="link"
+      href={getDocumentationUrl(
+        'user-guide/observability/#inference-logs-and-traces',
+        intl.locale
+      )}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {t('configuration')}
+    </Button>
+  );
   return (
     <Flex vertical gap={16}>
-      <Flex align="center" gap={16} wrap="wrap" justify="space-between">
-        {capabilities && (
-          <Flex align="center" gap={12} wrap="wrap">
-            <StatusDot
-              statusValue={{
-                status: tracingEnabled ? 'success' : 'inactive',
-                text: t(tracingEnabled ? 'traceOn' : 'traceOff')
-              }}
-            />
-            <StatusDot
-              statusValue={{
-                status: logsEnabled ? 'success' : 'inactive',
-                text: t(logsEnabled ? 'logsOn' : 'logsOff')
-              }}
-            />
-          </Flex>
-        )}
-        <Button type="link" onClick={() => setHelp(true)}>
-          {t('help')}
-        </Button>
-      </Flex>
-
       {error != null && (
         <Alert
           type="error"
@@ -279,13 +274,16 @@ export default function RequestTracesTab({
           status="info"
           title={t('bothOff')}
           subTitle={t('bothOffDetail')}
-          extra={
-            <Button onClick={() => setHelp(true)}>{t('configuration')}</Button>
-          }
+          extra={documentationLink}
         />
       )}
       {tracingEnabled && !listAvailable && (
-        <Alert showIcon type="warning" title={t('traceQueryMissing')} />
+        <Alert
+          showIcon
+          type="warning"
+          title={t('traceQueryMissing')}
+          action={documentationLink}
+        />
       )}
       {!listAvailable && logsEnabled && <LogLookup t={t} onLogs={openLogs} />}
 
@@ -322,7 +320,7 @@ export default function RequestTracesTab({
                 <Input allowClear placeholder={t('identifierPlaceholder')} />
               </Form.Item>
               <Form.Item className={styles.range} name="range">
-                <TraceTimeRangeControl historyNote={t('sampleHelp')} />
+                <TraceTimeRangeControl />
               </Form.Item>
               <Form.Item
                 className={styles.outcome}
@@ -376,9 +374,6 @@ export default function RequestTracesTab({
           <Flex align="center" gap={12} wrap="wrap" justify="space-between">
             <Typography.Text strong>{t('recentRecords')}</Typography.Text>
             <Flex align="center" gap={8}>
-              <Typography.Text type="secondary">
-                {t('recentFirst')}
-              </Typography.Text>
               <Button
                 icon={<ReloadOutlined />}
                 loading={loading}
@@ -392,17 +387,11 @@ export default function RequestTracesTab({
               rowKey="key"
               columns={columns}
               loading={loading}
-              dataSource={rows
-                .slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
-                .map((row) => ({ ...row, key: traceRecordKey(row) }))}
-              pagination={{
-                total: rows.length,
-                current: page,
-                pageSize: PAGE_SIZE,
-                showSizeChanger: false,
-                hideOnSinglePage: true,
-                onChange: setPage
-              }}
+              dataSource={rows.map((row) => ({
+                ...row,
+                key: traceRecordKey(row)
+              }))}
+              pagination={false}
               scroll={{ x: true }}
             />
           ) : (
@@ -427,7 +416,23 @@ export default function RequestTracesTab({
               </Empty>
             )
           )}
-          <Typography.Text type="secondary">{t('sampleHelp')}</Typography.Text>
+          {(page > 1 || nextCursor) && (
+            <Flex justify="end" align="center" gap={8}>
+              <Button
+                disabled={loading || page === 1}
+                onClick={() => changePage(page - 1)}
+              >
+                {t('previousPage')}
+              </Button>
+              <Typography.Text>{page}</Typography.Text>
+              <Button
+                disabled={loading || !nextCursor}
+                onClick={() => changePage(page + 1)}
+              >
+                {t('nextPage')}
+              </Button>
+            </Flex>
+          )}
           <TraceDetails
             row={selected}
             state={trace.detail}
@@ -443,17 +448,6 @@ export default function RequestTracesTab({
           />
         </>
       )}
-
-      <Modal
-        open={help}
-        title={t('help')}
-        footer={null}
-        onCancel={() => setHelp(false)}
-      >
-        <Typography.Paragraph>{t('traceHelp')}</Typography.Paragraph>
-        <Typography.Paragraph>{t('logHelp')}</Typography.Paragraph>
-        <Typography.Paragraph>{t('historyHelp')}</Typography.Paragraph>
-      </Modal>
 
       <Modal
         open={!!logTarget && logsEnabled}

@@ -1,13 +1,8 @@
 export default {
   'requestTracing.title': '请求追踪',
-  'requestTracing.traceOn': '追踪已开启',
-  'requestTracing.traceOff': '追踪已关闭',
-  'requestTracing.logsOn': '日志采集已开启',
-  'requestTracing.logsOff': '日志采集未开启',
-  'requestTracing.help': '采集说明',
   'requestTracing.bothOff': '追踪和日志采集均未开启',
   'requestTracing.bothOffDetail': '开启任一数据源后，可在这里排查后续请求。',
-  'requestTracing.configuration': '查看采集配置',
+  'requestTracing.configuration': '查看采集文档',
   'requestTracing.traceQueryMissing':
     '追踪已开启。配置 Tempo 查询地址后可查看留存链路。',
   'requestTracing.lookupLogs': '按请求 ID 查日志',
@@ -16,7 +11,6 @@ export default {
   'requestTracing.viewLogs': '查看关联日志',
   'requestTracing.logLinkMissing':
     '可复制到 Loki 查询。配置 Grafana 的 Loki 数据源 UID 后，可直接跳转到 Explore。',
-  'requestTracing.requestIdUnavailable': '未采集到请求 ID',
   'requestTracing.identifier': '请求标识',
   'requestTracing.identifierPlaceholder': '输入完整 Request ID 或 Trace ID',
   'requestTracing.requestIdPlaceholder': '输入完整 Request ID',
@@ -31,13 +25,14 @@ export default {
   'requestTracing.cancelled': '已断开',
   'requestTracing.unknown': '未知',
   'requestTracing.instance': '模型实例',
-  'requestTracing.instanceAndTrace': '实例 / 链路',
+  'requestTracing.instanceColumn': '实例',
   'requestTracing.allInstances': '全部实例',
   'requestTracing.search': '查询',
   'requestTracing.noEngine': '无引擎span',
   'requestTracing.reset': '重置筛选',
   'requestTracing.recentRecords': '近期留存记录',
-  'requestTracing.recentFirst': '按请求时间倒序',
+  'requestTracing.previousPage': '上一页',
+  'requestTracing.nextPage': '下一页',
   'requestTracing.refresh': '刷新请求列表',
   'requestTracing.requestTime': '请求 ID / 时间',
   'requestTracing.endpoint': '接口',
@@ -64,13 +59,5 @@ export default {
   'requestTracing.noRecords': '没有匹配的留存记录',
   'requestTracing.traceNotFound': '未找到留存链路',
   'requestTracing.queryFailed': '请求追踪查询失败',
-  'requestTracing.retry': '重试',
-  'requestTracing.sampleHelp':
-    '仅展示近期留存的部分链路。点击请求 ID 查看 Span 和已采集的指标。',
-  'requestTracing.traceHelp':
-    'Docker Server 和 Helm Server 默认使用内置 Tempo。使用外部 Tempo 时，配置 GPUSTACK_TRACE_QUERY_URL 或 tracing.queryURL。',
-  'requestTracing.logHelp':
-    '通过 GPUSTACK_LOG_OTLP_ENDPOINT 或 logging.endpoint 配置日志采集。日志跳转使用 GPUSTACK_LOG_GRAFANA_DATASOURCE_UID 或 logging.grafanaDatasourceUID。',
-  'requestTracing.historyHelp':
-    '关闭追踪会停止内置 Tempo。外部存储中的留存数据按对应系统的保留策略查询。'
+  'requestTracing.retry': '重试'
 };
