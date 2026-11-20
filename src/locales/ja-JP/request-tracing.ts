@@ -57,7 +57,7 @@ export default {
     'No engine span was recorded for this request.',
   'requestTracing.engineTimings': 'Engine timings',
   'requestTracing.queue': 'Queue time',
-  'requestTracing.zoomStarts': '開始部分を拡大',
+  'requestTracing.focusSpan': 'この Span にフォーカス',
   'requestTracing.fullTimeline': '全体を表示',
   'requestTracing.spanError': 'エラー',
   'requestTracing.noRecords': 'No matching retained requests',

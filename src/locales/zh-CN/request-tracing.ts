@@ -55,7 +55,7 @@ export default {
   'requestTracing.missingEngine': '这条请求的留存链路中没有引擎 Span。',
   'requestTracing.engineTimings': '引擎耗时指标',
   'requestTracing.queue': '排队耗时',
-  'requestTracing.zoomStarts': '放大起点',
+  'requestTracing.focusSpan': '聚焦此 Span',
   'requestTracing.fullTimeline': '显示全程',
   'requestTracing.spanError': '错误',
   'requestTracing.noRecords': '没有匹配的留存记录',

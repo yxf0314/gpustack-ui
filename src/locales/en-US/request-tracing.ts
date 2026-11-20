@@ -57,7 +57,7 @@ export default {
     'No engine span was recorded for this request.',
   'requestTracing.engineTimings': 'Engine timings',
   'requestTracing.queue': 'Queue time',
-  'requestTracing.zoomStarts': 'Zoom into starts',
+  'requestTracing.focusSpan': 'Focus this span',
   'requestTracing.fullTimeline': 'Show full timeline',
   'requestTracing.spanError': 'Error',
   'requestTracing.noRecords': 'No matching retained requests',

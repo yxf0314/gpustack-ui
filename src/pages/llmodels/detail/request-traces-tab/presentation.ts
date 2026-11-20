@@ -49,33 +49,60 @@ export function spanTimelineRows<T extends Pick<TraceSpan, 'id' | 'parent_id'>>(
     }
   }
 
-  const ordered: { span: T; depth: number }[] = [];
+  // Each branch records whether its level has a following sibling.
+  const ordered: { span: T; branches: boolean[] }[] = [];
   const visited = new Set<string>();
-  const visit = (span: T, depth: number) => {
+  const visit = (span: T, branches: boolean[]) => {
     if (visited.has(span.id)) return;
     visited.add(span.id);
-    ordered.push({ span, depth });
-    for (const child of children.get(span.id) ?? []) {
-      visit(child, depth + 1);
-    }
+    ordered.push({ span, branches });
+    const siblings = children.get(span.id) ?? [];
+    siblings.forEach((child, index) => {
+      visit(child, [...branches, index < siblings.length - 1]);
+    });
   };
-  for (const span of children.get(null) ?? []) visit(span, 0);
-  for (const span of spans) visit(span, 0);
+  for (const span of children.get(null) ?? []) visit(span, []);
+  for (const span of spans) visit(span, []);
   return ordered;
 }
 
-export function timelineStartWindow(
-  spans: Pick<TraceSpan, 'start_offset_ms'>[],
-  fullWindow: number
+type SpanTiming = Pick<TraceSpan, 'start_offset_ms' | 'duration_ms'>;
+type TimelineWindow = { start: number; end: number };
+
+export function spanTimelineWindow(
+  spans: SpanTiming[],
+  focus?: SpanTiming
+): TimelineWindow {
+  if (focus && focus.duration_ms > 0) {
+    return {
+      start: focus.start_offset_ms,
+      end: focus.start_offset_ms + focus.duration_ms
+    };
+  }
+  return {
+    start: 0,
+    end: Math.max(
+      1,
+      ...spans.map((span) => span.start_offset_ms + span.duration_ms)
+    )
+  };
+}
+
+export function spanTimelineSegment(
+  span: SpanTiming,
+  { start, end }: TimelineWindow
 ) {
-  const latestEarlyStart = Math.max(
-    0,
-    ...spans
-      .map(({ start_offset_ms }) => start_offset_ms)
-      .filter((start) => start <= fullWindow / 10)
-  );
-  const zoomEnd = Math.max(1, Math.ceil(latestEarlyStart * 1.2));
-  return latestEarlyStart > 0 && zoomEnd < fullWindow ? zoomEnd : undefined;
+  const spanEnd = span.start_offset_ms + span.duration_ms;
+  const from = Math.max(span.start_offset_ms, start);
+  const to = Math.min(spanEnd, end);
+  if (to < from || (to === from && span.duration_ms > 0)) return undefined;
+  const duration = end - start;
+  return {
+    offset: ((from - start) / duration) * 100,
+    width: ((to - from) / duration) * 100,
+    clippedStart: span.start_offset_ms < start,
+    clippedEnd: spanEnd > end
+  };
 }
 
 export interface LogTarget {
