@@ -49,6 +49,7 @@ export default {
   'requestTracing.requestInfo': 'リクエスト情報',
   'requestTracing.requestMetrics': 'リクエスト指標',
   'requestTracing.startedAt': 'リクエスト時刻',
+  'requestTracing.traceWaterfall': 'トレースのウォーターフォール',
   'requestTracing.spanLimit': 'Showing {count} recorded spans.',
   'requestTracing.spanStart': 'Start offset',
   'requestTracing.spanEnd': 'End offset',

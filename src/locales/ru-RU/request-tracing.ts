@@ -49,6 +49,7 @@ export default {
   'requestTracing.requestInfo': 'Сведения о запросе',
   'requestTracing.requestMetrics': 'Метрики запроса',
   'requestTracing.startedAt': 'Время запроса',
+  'requestTracing.traceWaterfall': 'Водопад трассировки',
   'requestTracing.spanLimit': 'Showing {count} recorded spans.',
   'requestTracing.spanStart': 'Start offset',
   'requestTracing.spanEnd': 'End offset',

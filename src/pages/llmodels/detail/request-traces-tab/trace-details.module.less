@@ -1,3 +1,8 @@
+.drawerContent {
+  padding-block: var(--ant-padding);
+  padding-inline: var(--ant-padding-lg);
+}
+
 .spanButton {
   width: 100%;
   height: auto;
@@ -141,7 +146,8 @@
 }
 
 .spanPopover {
-  inline-size: min(360px, calc(100vw - 32px));
+  inline-size: 360px;
+  max-inline-size: calc(100vw - 32px);
 }
 
 .spanPopoverContent {

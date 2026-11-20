@@ -49,6 +49,7 @@ export default {
   'requestTracing.requestInfo': 'Request information',
   'requestTracing.requestMetrics': 'Request metrics',
   'requestTracing.startedAt': 'Request time',
+  'requestTracing.traceWaterfall': 'Trace waterfall',
   'requestTracing.spanLimit': 'Showing {count} recorded spans.',
   'requestTracing.spanStart': 'Start offset',
   'requestTracing.spanEnd': 'End offset',

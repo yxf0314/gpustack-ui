@@ -1,3 +1,4 @@
+import { SectionTitle } from '@gpustack/core-ui';
 import { Alert, Button, Descriptions, Flex, Popover, Typography } from 'antd';
 import { useState } from 'react';
 import {
@@ -103,6 +104,9 @@ export default function SpanTimeline({
 
   return (
     <Flex vertical gap={12}>
+      <SectionTitle role="heading" aria-level={3}>
+        {t('traceWaterfall')}
+      </SectionTitle>
       {!detail.request.has_engine && (
         <Alert type="info" showIcon title={t('missingEngine')} />
       )}
@@ -143,6 +147,14 @@ export default function SpanTimeline({
                 title={t('spanAttributes')}
                 content={<SpanAttributes span={span} t={t} />}
                 placement="bottomLeft"
+                align={{
+                  overflow: {
+                    adjustX: true,
+                    adjustY: true,
+                    shiftX: true,
+                    shiftY: true
+                  }
+                }}
                 trigger="click"
                 open={open}
                 onOpenChange={(nextOpen) =>

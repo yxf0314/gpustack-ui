@@ -49,6 +49,7 @@ export default {
   'requestTracing.requestInfo': 'İstek bilgileri',
   'requestTracing.requestMetrics': 'İstek metrikleri',
   'requestTracing.startedAt': 'İstek zamanı',
+  'requestTracing.traceWaterfall': 'İz şelalesi',
   'requestTracing.spanLimit': 'Showing {count} recorded spans.',
   'requestTracing.spanStart': 'Start offset',
   'requestTracing.spanEnd': 'End offset',

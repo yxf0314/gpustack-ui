@@ -1,6 +1,7 @@
 import {
   CardWrapper,
   GSDrawer,
+  OverlayScroller,
   SectionTitle,
   StatusDot
 } from '@gpustack/core-ui';
@@ -231,7 +232,7 @@ export default function TraceDetails({
       onClose={onClose}
       styles={{
         wrapper: { width: 'min(960px, 100vw)' },
-        body: { paddingInline: 'var(--ant-padding-lg)' }
+        body: { paddingBlock: 0, paddingInline: 0, overflowY: 'hidden' }
       }}
       destroyOnHidden
       title={
@@ -242,31 +243,37 @@ export default function TraceDetails({
       }
     >
       {observation && (
-        <Flex vertical gap={16}>
-          <RequestCards
-            observation={observation}
-            instanceName={instanceName}
-            locale={locale}
-            t={t}
-            onLogs={logsEnabled ? onLogs : undefined}
-          />
-          {state.loading && <Skeleton active />}
-          {state.error != null && (
-            <Alert
-              showIcon
-              type={notFound ? 'info' : 'error'}
-              title={t(notFound ? 'traceNotFound' : 'queryFailed')}
-              action={<Button onClick={onRetry}>{t('retry')}</Button>}
-            />
-          )}
-          {detail && (
-            <SpanTimeline
-              key={`${observation.trace_id}:${observation.request_id}`}
-              detail={detail}
+        <OverlayScroller
+          maxHeight="100%"
+          style={{ height: '100%', paddingInline: 0 }}
+          scrollbars={{ autoHide: 'leave' }}
+        >
+          <Flex vertical gap={16} className={styles.drawerContent}>
+            <RequestCards
+              observation={observation}
+              instanceName={instanceName}
+              locale={locale}
               t={t}
+              onLogs={logsEnabled ? onLogs : undefined}
             />
-          )}
-        </Flex>
+            {state.loading && <Skeleton active />}
+            {state.error != null && (
+              <Alert
+                showIcon
+                type={notFound ? 'info' : 'error'}
+                title={t(notFound ? 'traceNotFound' : 'queryFailed')}
+                action={<Button onClick={onRetry}>{t('retry')}</Button>}
+              />
+            )}
+            {detail && (
+              <SpanTimeline
+                key={`${observation.trace_id}:${observation.request_id}`}
+                detail={detail}
+                t={t}
+              />
+            )}
+          </Flex>
+        </OverlayScroller>
       )}
     </GSDrawer>
   );

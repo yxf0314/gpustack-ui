@@ -48,6 +48,7 @@ export default {
   'requestTracing.requestInfo': '请求信息',
   'requestTracing.requestMetrics': '请求指标',
   'requestTracing.startedAt': '请求时间',
+  'requestTracing.traceWaterfall': '链路瀑布图',
   'requestTracing.spanLimit': '当前展示 {count} 个已记录的 Span。',
   'requestTracing.spanStart': '开始偏移',
   'requestTracing.spanEnd': '结束偏移',
